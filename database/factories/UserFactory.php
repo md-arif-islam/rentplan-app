@@ -1,0 +1,35 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Company;
+use App\Models\Role;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class UserFactory extends Factory
+{
+    protected $model = User::class;
+
+    public function definition(): array
+    {
+        return [
+            'company_id' => Company::factory(),
+            'role_id' => null,
+            'email' => $this->faker->unique()->safeEmail,
+            'email_verified_at' => now(),
+            'password' => bcrypt('12345678'),
+            'remember_token' => '',
+        ];
+    }
+
+    public function withRole($roleName)
+    {
+        return $this->state(function () use ($roleName) {
+            return [
+                'role_id' => Role::firstWhere('name', $roleName)?->id
+                    ?? Role::create(['name' => $roleName, 'scope' => 'company'])->id,
+            ];
+        });
+    }
+}
