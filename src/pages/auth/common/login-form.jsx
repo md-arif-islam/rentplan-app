@@ -1,0 +1,108 @@
+import Button from "@/components/ui/Button";
+import Checkbox from "@/components/ui/Checkbox";
+import Textinput from "@/components/ui/Textinput";
+import { useLoginMutation } from "@/store/api/auth/authApiSlice";
+import { setUser } from "@/store/api/auth/authSlice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useDispatch } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import * as yup from "yup";
+const schema = yup
+    .object({
+        email: yup
+            .string()
+            .email("Invalid email")
+            .required("Email is Required"),
+        password: yup.string().required("Password is Required"),
+    })
+    .required();
+const LoginForm = () => {
+    const [login, { isLoading, isError, error, isSuccess }] =
+        useLoginMutation();
+
+    const dispatch = useDispatch();
+
+    const {
+        register,
+        formState: { errors },
+        handleSubmit,
+    } = useForm({
+        resolver: yupResolver(schema),
+
+        mode: "all",
+    });
+    const navigate = useNavigate();
+    const onSubmit = async (data) => {
+        try {
+            const response = await login(data);
+
+            if (response?.error) {
+                throw new Error(response.error.data.message);
+            }
+            dispatch(
+                setUser({
+                    user: response.data.user,
+                    token: response.data.token,
+                })
+            );
+
+            toast.success("Login Successful");
+
+            // Navigate AFTER everything is set up
+            navigate("/admin/dashboard");
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
+
+    const [checked, setChecked] = useState(true);
+
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 ">
+            <Textinput
+                name="email"
+                label="email"
+                type="email"
+                register={register}
+                error={errors.email}
+                className="h-[48px]"
+                placeholder="Enter your email"
+            />
+            <Textinput
+                name="password"
+                label="passwrod"
+                type="password"
+                register={register}
+                error={errors.password}
+                className="h-[48px]"
+                placeholder="Enter your password"
+                hasicon={true}
+            />
+            <div className="flex justify-between">
+                <Checkbox
+                    value={checked}
+                    onChange={() => setChecked(!checked)}
+                    label="Keep me signed in"
+                />
+                <Link
+                    to="/forgot-password"
+                    className="text-sm text-slate-800 dark:text-slate-400 leading-6 font-medium"
+                >
+                    Forgot Password?{" "}
+                </Link>
+            </div>
+
+            <Button
+                type="submit"
+                text="Sign in"
+                className="btn btn-dark block w-full text-center "
+                isLoading={isLoading}
+            />
+        </form>
+    );
+};
+
+export default LoginForm;
