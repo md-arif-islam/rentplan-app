@@ -39,7 +39,7 @@ jobs:
       - name: FTP Deploy Portal Frontend to https://app.rentplan.nl
         uses: SamKirkland/FTP-Deploy-Action@v4.3.1
         with:
-          server: rentplan.nl
+          server: ${{ secrets.SERVER_APP }}
           username: rentplan-app-ftp
           password: 39fq@a28I
           local-dir: ./
