@@ -1,33 +1,72 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const storedUser = JSON.parse(localStorage.getItem("user"));
-const storedToken = localStorage.getItem("authToken"); // Fixed JSON.parse for token
+// Initialize state from localStorage
+const getInitialState = () => {
+    try {
+        const storedUser = localStorage.getItem("user");
+        const storedToken = localStorage.getItem("authToken");
+
+        return {
+            user: storedUser ? JSON.parse(storedUser) : null,
+            token: storedToken || null,
+            isAuth: !!storedToken,
+            error: null,
+            loading: false,
+        };
+    } catch (error) {
+        console.error("Error reading from localStorage:", error);
+        return {
+            user: null,
+            token: null,
+            isAuth: false,
+            error: null,
+            loading: false,
+        };
+    }
+};
 
 export const authSlice = createSlice({
     name: "auth",
-    initialState: {
-        user: storedUser || null,
-        token: storedToken || null,
-        isAuth: !!storedToken,
-    },
+    initialState: getInitialState(),
     reducers: {
         setUser: (state, action) => {
-            state.user = action.payload.user;
-            state.token = action.payload.token;
+            const { user, token } = action.payload;
+            state.user = user;
+            state.token = token;
             state.isAuth = true;
-            localStorage.setItem("user", JSON.stringify(action.payload.user)); // Added missing localStorage update
-            localStorage.setItem("authToken", action.payload.token); // Added missing localStorage update
+            state.error = null;
+            state.loading = false;
+
+            try {
+                localStorage.setItem("user", JSON.stringify(user));
+                localStorage.setItem("authToken", token);
+            } catch (error) {
+                console.error("Failed to store auth data:", error);
+            }
         },
         logOut: (state) => {
             state.user = null;
             state.token = null;
             state.isAuth = false;
-            // Clear localStorage tokens on logout
-            localStorage.removeItem("user");
-            localStorage.removeItem("authToken");
+            state.error = null;
+            state.loading = false;
+
+            try {
+                localStorage.removeItem("user");
+                localStorage.removeItem("authToken");
+            } catch (error) {
+                console.error("Failed to clear auth data:", error);
+            }
+        },
+        setError: (state, action) => {
+            state.error = action.payload;
+            state.loading = false;
+        },
+        setLoading: (state, action) => {
+            state.loading = action.payload;
         },
     },
 });
 
-export const { setUser, logOut } = authSlice.actions;
+export const { setUser, logOut, setError, setLoading } = authSlice.actions;
 export default authSlice.reducer;

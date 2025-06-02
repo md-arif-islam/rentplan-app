@@ -12,13 +12,11 @@ Route::post('/send-reset-link-email', [AuthController::class, 'sendResetLinkEmai
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-Route::get('/user', [AuthController::class, 'authCheck']);
 
 
 // -------------------- Admin routes ----------------------
 Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
-
-    // Dashboard
+    Route::get('/user', [AuthController::class, 'authCheck']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
 });
 

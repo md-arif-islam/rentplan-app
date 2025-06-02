@@ -3,25 +3,33 @@ import { apiSlice } from "../apiSlice";
 export const authApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation({
-            // Use a custom queryFn to chain the CSRF call and then the login call.
             async queryFn(credentials, queryApi, extraOptions, baseQuery) {
-                // Call the CSRF endpoint first.
-                const csrfResponse = await baseQuery({
-                    url: "/sanctum/csrf-cookie",
-                    method: "GET",
-                });
-                if (csrfResponse.error) {
-                    return { error: csrfResponse.error };
-                }
-                // Then perform the login request.
-                const loginResponse = await baseQuery({
-                    url: "/api/login",
-                    method: "POST",
-                    body: credentials,
-                });
+                try {
+                    // Get CSRF token
+                    const csrfResponse = await baseQuery({
+                        url: "/sanctum/csrf-cookie",
+                        method: "GET",
+                    });
 
-                return loginResponse;
+                    if (csrfResponse.error) {
+                        return { error: csrfResponse.error };
+                    }
+
+                    // Perform login
+                    const loginResponse = await baseQuery({
+                        url: "/api/login",
+                        method: "POST",
+                        body: credentials,
+                    });
+
+                    return loginResponse;
+                } catch (error) {
+                    return {
+                        error: { status: "CUSTOM_ERROR", error: error.message },
+                    };
+                }
             },
+            invalidatesTags: ["Auth", "User", "Profile"],
         }),
         register: builder.mutation({
             query: (userData) => ({
@@ -35,12 +43,26 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 url: "/api/logout",
                 method: "POST",
             }),
+            invalidatesTags: ["Auth", "User", "Profile"],
+            async onQueryStarted(_, { dispatch }) {
+                // Optimistically update the state
+                dispatch({ type: "auth/logOut" });
+            },
         }),
         getUser: builder.query({
-            // This query is used to verify the authentication status.
-            // A 401 error indicates the token is expired.
             query: () => "/api/user",
-            keepUnusedDataFor: 0, // force fresh data on mount
+            providesTags: ["User"],
+            keepUnusedDataFor: 0,
+            // Add error handling
+            async onQueryStarted(_, { queryFulfilled, dispatch }) {
+                try {
+                    await queryFulfilled;
+                } catch (error) {
+                    if (error.error.status === 401) {
+                        dispatch({ type: "auth/logOut" });
+                    }
+                }
+            },
         }),
         resetPassword: builder.mutation({
             query: (resetData) => ({
@@ -48,6 +70,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
                 method: "POST",
                 body: resetData,
             }),
+            invalidatesTags: ["Auth"],
         }),
         sendResetLink: builder.mutation({
             query: (email) => ({

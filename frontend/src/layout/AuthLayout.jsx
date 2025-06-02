@@ -1,23 +1,24 @@
-import React, { useEffect, Suspense } from "react";
+import Loading from "@/components/Loading";
+import { Suspense, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { Outlet, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import Loading from "@/components/Loading";
-import { useSelector } from "react-redux";
+
 const AuthLayout = () => {
     const navigate = useNavigate();
-    const { isAuth, user } = useSelector((state) => state.auth);
+    const { isAuth, token } = useSelector((state) => state.auth);
 
     useEffect(() => {
-        if (isAuth || user) {
+        if (isAuth && token) {
             navigate("/admin/dashboard");
         }
-    }, [isAuth, navigate, user]);
+    }, [isAuth, token, navigate]);
 
     return (
         <>
             <Suspense fallback={<Loading />}>
                 <ToastContainer />
-                {<Outlet />}
+                <Outlet />
             </Suspense>
         </>
     );

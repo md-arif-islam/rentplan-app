@@ -13,6 +13,8 @@ import useSidebar from "@/hooks/useSidebar";
 import useWidth from "@/hooks/useWidth";
 import { useGetUserQuery } from "@/store/api/auth/authApiSlice";
 import { logOut } from "@/store/api/auth/authSlice";
+import { useGetProfileByUserIdQuery } from "@/store/api/profile/profileApiSlice";
+import { setProfile } from "@/store/api/profile/profileSlice";
 import { motion } from "framer-motion";
 import { Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,29 +28,41 @@ const Layout = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const location = useLocation();
+    const { isAuth, token } = useSelector((state) => state.auth);
 
     const {
         data: user,
         isLoading,
         isError,
-        isFetching,
         error,
-    } = useGetUserQuery();
+    } = useGetUserQuery(undefined, {
+        skip: !token, // Skip the query if there's no token
+    });
 
+    const { data: profile, refetch: refetchProfile } =
+        useGetProfileByUserIdQuery(user?.id, { skip: !user });
+
+    // Handle auth state
     useEffect(() => {
-        if (!isLoading && !user) {
-            dispatch(logOut());
+        if (!isAuth || !token) {
             navigate("/login");
+            return;
         }
-    }, [isLoading, isFetching, isError, error, user, dispatch, navigate]);
 
-    const { isAuth } = useSelector((state) => state.auth);
+        if (isError) {
+            if (error?.status === 401) {
+                dispatch(logOut());
+                navigate("/login");
+            }
+        }
+    }, [isAuth, token, isError, error, navigate, dispatch]);
 
+    // Handle profile data
     useEffect(() => {
-        if (!isAuth) {
-            navigate("/login");
+        if (profile) {
+            dispatch(setProfile(profile));
         }
-    }, [isAuth, navigate]);
+    }, [profile, dispatch]);
 
     const switchHeaderClass = () => {
         if (menuType === "horizontal" || menuHidden) {
@@ -66,6 +80,10 @@ const Layout = () => {
     const [menuHidden] = useMenuHidden();
     // mobile menu
     const [mobileMenu, setMobileMenu] = useMobileMenu();
+
+    if (isLoading) {
+        return <Loading />;
+    }
 
     return (
         <>
@@ -96,8 +114,7 @@ const Layout = () => {
                     width > 1280 ? switchHeaderClass() : ""
                 }`}
             >
-                {/* md:min-h-screen will h-full*/}
-                <div className="page-content   page-min-height  ">
+                <div className="page-content page-min-height">
                     <div
                         className={
                             contentWidth === "boxed"
