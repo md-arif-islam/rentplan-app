@@ -3,7 +3,7 @@ name: FTP Deployment for Rentplan App
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   ftp-deploy-rentplan:
