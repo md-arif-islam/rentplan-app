@@ -67,10 +67,7 @@ const Profile = () => {
         ? `${import.meta.env.VITE_API_URL}/${data.avatar}`
         : null;
 
-    const fullName =
-        data?.first_name || data?.last_name
-            ? `${data?.first_name || ""} ${data?.last_name || ""}`.trim()
-            : "N/A";
+    const fullName = data?.name || "N/A";
 
     const email = data?.user?.email || "N/A";
 
@@ -111,7 +108,7 @@ const Profile = () => {
                     </div>
                 </div>
                 <div className="grid grid-cols-12 gap-6">
-                    <div className="lg:col-span-4 col-span-12">
+                    <div className="lg:col-span-12 col-span-12">
                         <Card title="Personal Information">
                             <ul className="list space-y-8">
                                 <li className="flex space-x-3 rtl:space-x-reverse">
@@ -145,80 +142,6 @@ const Profile = () => {
                                         >
                                             {data?.phone || "N/A"}
                                         </a>
-                                    </div>
-                                </li>
-
-                                <li className="flex space-x-3 rtl:space-x-reverse">
-                                    <div className="flex-none text-2xl text-slate-600 dark:text-slate-300">
-                                        <Icon icon="heroicons:globe-alt" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="uppercase text-sm text-slate-500 dark:text-slate-300 mb-1 leading-[12px]">
-                                            WEBSITE
-                                        </div>
-                                        <a
-                                            href={data?.website || "#"}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-base text-slate-600 dark:text-slate-50"
-                                        >
-                                            {data?.website || "N/A"}
-                                        </a>
-                                    </div>
-                                </li>
-                            </ul>
-                        </Card>
-                    </div>
-                    <div className="lg:col-span-8 col-span-12">
-                        <Card title="Address Information">
-                            <ul className="list space-y-8">
-                                <li className="flex space-x-3 rtl:space-x-reverse">
-                                    <div className="flex-none text-2xl text-slate-600 dark:text-slate-300">
-                                        <Icon icon="heroicons:map" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="uppercase text-sm text-slate-500 dark:text-slate-300 mb-1 leading-[12px]">
-                                            ADDRESS
-                                        </div>
-                                        <div className="text-base text-slate-600 dark:text-slate-50">
-                                            {data?.address || "N/A"}
-                                        </div>
-                                    </div>
-                                </li>
-
-                                <li className="flex space-x-3 rtl:space-x-reverse">
-                                    <div className="flex-none text-2xl text-slate-600 dark:text-slate-300">
-                                        <Icon icon="heroicons:building-office-2" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="uppercase text-sm text-slate-500 dark:text-slate-300 mb-1 leading-[12px]">
-                                            CITY / POST CODE
-                                        </div>
-                                        <div className="text-base text-slate-600 dark:text-slate-50">
-                                            {data?.city ? (
-                                                <>
-                                                    {data?.city}
-                                                    {data?.post_code &&
-                                                        `, ${data.post_code}`}
-                                                </>
-                                            ) : (
-                                                data?.post_code || "N/A"
-                                            )}
-                                        </div>
-                                    </div>
-                                </li>
-
-                                <li className="flex space-x-3 rtl:space-x-reverse">
-                                    <div className="flex-none text-2xl text-slate-600 dark:text-slate-300">
-                                        <Icon icon="heroicons:flag" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="uppercase text-sm text-slate-500 dark:text-slate-300 mb-1 leading-[12px]">
-                                            COUNTY
-                                        </div>
-                                        <div className="text-base text-slate-600 dark:text-slate-50">
-                                            {data?.county || "N/A"}
-                                        </div>
                                     </div>
                                 </li>
                             </ul>

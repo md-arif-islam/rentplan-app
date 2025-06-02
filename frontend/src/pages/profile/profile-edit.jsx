@@ -27,10 +27,6 @@ const ProfileEdit = () => {
         first_name: "",
         last_name: "",
         phone: "",
-        address: "",
-        city: "",
-        post_code: "",
-        county: "",
         avatar: null,
     });
 
@@ -53,14 +49,17 @@ const ProfileEdit = () => {
 
     useEffect(() => {
         if (profile) {
+            let first_name = "";
+            let last_name = "";
+            if (profile.name) {
+                const nameParts = profile.name.split(" ");
+                first_name = nameParts[0] || "";
+                last_name = nameParts.slice(1).join(" ") || "";
+            }
             setFormData({
-                first_name: profile.first_name || "",
-                last_name: profile.last_name || "",
+                first_name,
+                last_name,
                 phone: profile.phone || "",
-                address: profile.address || "",
-                city: profile.city || "",
-                post_code: profile.post_code || "",
-                county: profile.county || "",
                 avatar: profile.avatar || null,
             });
         }
@@ -74,11 +73,14 @@ const ProfileEdit = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const name = `${formData.first_name} ${formData.last_name}`.trim();
             const updatedProfile = await updateProfile({
                 id,
-                ...formData,
+                name,
+                phone: formData.phone,
+                avatar: formData.avatar,
             }).unwrap();
-            dispatch(setProfile(updatedProfile));
+            dispatch(setProfile(updatedProfile.data || updatedProfile));
             toast.success("Profile updated successfully");
             navigate("/admin/profile");
         } catch (error) {
@@ -174,59 +176,6 @@ const ProfileEdit = () => {
                                 setFormData({
                                     ...formData,
                                     phone: e.target.value,
-                                })
-                            }
-                        />
-                    </div>
-                </Card>
-
-                <Card title="Address Information" className="mt-5">
-                    <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
-                        <Textinput
-                            label="Address"
-                            type="text"
-                            placeholder="Enter address"
-                            defaultValue={formData.address}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    address: e.target.value,
-                                })
-                            }
-                        />
-                        <Textinput
-                            label="City"
-                            type="text"
-                            placeholder="Enter city"
-                            defaultValue={formData.city}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    city: e.target.value,
-                                })
-                            }
-                        />
-                        <Textinput
-                            label="Post Code"
-                            type="text"
-                            placeholder="Enter post code"
-                            defaultValue={formData.post_code}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    post_code: e.target.value,
-                                })
-                            }
-                        />
-                        <Textinput
-                            label="County"
-                            type="text"
-                            placeholder="Enter county"
-                            defaultValue={formData.county}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    county: e.target.value,
                                 })
                             }
                         />

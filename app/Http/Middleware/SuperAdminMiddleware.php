@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class SuperAdminMiddleware
@@ -17,7 +18,14 @@ class SuperAdminMiddleware
     {
         $user = auth()->user();
 
-        if ($user && $user->role == 'super_admin') {
+        Log::info($user);
+
+        if (
+            $user &&
+            $user->role &&
+            $user->role->name === 'super_admin' &&
+            $user->role->scope === 'platform'
+        ) {
             return $next($request);
         }
 

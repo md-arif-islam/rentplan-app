@@ -11,6 +11,7 @@ const Profile = () => {
     const dispatch = useDispatch();
     const [logoutApi] = useLogoutMutation();
     const user = useSelector((state) => state.auth.user);
+    const profileData = useSelector((state) => state.profile.profile);
 
     let userRole =
         user?.role?.name == "super_admin"
@@ -18,14 +19,15 @@ const Profile = () => {
             : user?.role?.name == "company_admin"
             ? "Admin"
             : null;
-    const profileData = user.user_profile;
 
-    const UserAvatar = profileData?.avatar
-        ? `${import.meta.env.VITE_API_URL}/${profileData.avatar}`
+    const profileInfo = profileData || user?.profile;
+
+    const UserAvatar = profileInfo?.avatar
+        ? `${import.meta.env.VITE_API_URL}/${profileInfo.avatar}`
         : null;
 
-    const fullName = profileData?.name
-        ? `${profileData?.name || ""}`.trim()
+    const fullName = profileInfo?.name
+        ? `${profileInfo?.name || ""}`.trim()
         : userRole;
 
     const profileLabel = () => {
