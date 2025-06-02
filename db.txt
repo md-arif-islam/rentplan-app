@@ -1,0 +1,143 @@
+migrations {
+    id int(10) pk increments
+    migration varchar(255)
+    batch int(11)
+}
+
+
+personal_access_tokens {
+    id bigint pk increments
+    tokenable_type varchar(255)
+    tokenable_id bigint
+    name varchar(255)
+    token varchar(64) unique
+    abilities text def(null)
+    last_used_at timestamp def(null)
+    expires_at timestamp def(null)
+    created_at timestamp def(null)
+    updated_at timestamp def(null)
+}
+
+sessions {
+    id varchar(255) pk
+    user_id bigint def(null) > users.id
+    ip_address varchar(45) def(null)
+    user_agent text def(null)
+    payload longtext
+    last_activity int
+}
+
+cache {
+    key varchar(255) pk
+    value mediumtext
+    expiration int
+}
+
+cache_locks {
+    key varchar(255) pk
+    owner varchar(255)
+    expiration int
+}
+
+jobs {
+    id bigint pk increments
+    queue varchar(255)
+    payload longtext
+    attempts tinyint
+    reserved_at int def(null)
+    available_at int
+    created_at int
+}
+
+job_batches {
+    id varchar(255) pk
+    name varchar(255)
+    total_jobs int
+    pending_jobs int
+    failed_jobs int
+    failed_job_ids longtext
+    options mediumtext def(null)
+    cancelled_at int def(null)
+    created_at int
+    finished_at int def(null)
+}
+
+failed_jobs {
+    id bigint pk increments
+    uuid varchar(255) unique
+    connection text
+    queue text
+    payload longtext
+    exception longtext
+    failed_at timestamp def(current_timestamp)
+}
+
+password_reset_tokens {
+    email varchar(255) pk
+    token varchar(255)
+    created_at timestamp null
+}
+
+notifications {
+    id bigint(20) pk increments
+    type varchar(255)
+    notifiable_type varchar(255)
+    notifiable_id bigint
+    data text
+    read_at timestamp null
+    created_at timestamp null
+    updated_at timestamp null
+}
+
+
+companies {
+	id bigint pk increments unique
+	email varchar(255) null
+	plan json(100) null
+	created_at timestamp unique
+	updated_at	 timestamp unique
+	deleted_at timestamp unique
+}
+
+users {
+	id bigint pk increments unique
+	company_id bigint > companies.id
+	email varchar(255) unique
+	email_verified_at timestamp null
+	password varchar(255)
+	role_id integer > roles.id
+	remember_token varchar(100) null
+	created_at timestamp null
+	updated_at timestamp null
+	deleted_at timestamp null
+}
+
+company_profiles {
+	id bigint pk increments unique > companies.id
+	company_id bigint
+	name varchar(255)
+	logo text null
+	phone varchar(20) null
+	website varchar(255) null
+	address_line_1 varchar(255) null
+	address_line_2 varchar(255)
+	city varchar(100) null
+	state varchar(100) null
+	postal_code varchar(20) null
+	country varchar(100)
+}
+
+user_profiles {
+	id bigint pk increments unique
+	user_id bigint > users.id
+	name varchar(255)
+	phone varchar(255) null
+	avatar varchar(255) null
+}
+
+roles {
+	id bigint pk increments unique
+	name varchar(100) unique
+	scope enum(ENUM('platform', 'company'))
+}
+

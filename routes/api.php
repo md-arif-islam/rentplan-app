@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 // -------------------- Guest routes related to authentication ----------------------
@@ -15,7 +16,7 @@ Route::get('/user', [AuthController::class, 'authCheck']);
 
 
 // -------------------- Admin routes ----------------------
-Route::prefix('admin')->middleware(['auth:sanctum', AdminMiddleware::class])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index']);
