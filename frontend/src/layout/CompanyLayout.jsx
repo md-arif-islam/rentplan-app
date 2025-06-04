@@ -1,6 +1,5 @@
 import Loading from "@/components/Loading";
 import Footer from "@/components/partials/footer";
-import MobileFooter from "@/components/partials/footer/MobileFooter";
 import Header from "@/components/partials/header";
 import Settings from "@/components/partials/settings";
 import Sidebar from "@/components/partials/sidebar";
@@ -155,7 +154,6 @@ const Layout = () => {
                     </div>
                 </div>
             </div>
-            {width < breakpoints.md && <MobileFooter />}
             {width > breakpoints.md && (
                 <Footer
                     className={

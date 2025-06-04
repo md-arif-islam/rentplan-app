@@ -1,7 +1,5 @@
 import Dropdown from "@/components/ui/Dropdown";
 import Icon from "@/components/ui/Icon";
-import { message } from "@/constant/data";
-import { Menu } from "@headlessui/react";
 import { Link } from "react-router-dom";
 
 const messagelabel = () => {
@@ -14,8 +12,6 @@ const messagelabel = () => {
         </span>
     );
 };
-// message slice  0-4
-const newMessage = message.slice(0, 4);
 
 const Message = () => {
     return (
@@ -32,58 +28,6 @@ const Message = () => {
                         View all
                     </Link>
                 </div>
-            </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                {newMessage?.map((item, i) => (
-                    <Menu.Item key={i}>
-                        {({ active }) => (
-                            <div
-                                className={`${
-                                    active
-                                        ? "bg-slate-100 text-slate-800 dark:bg-slate-600 dark:bg-opacity-70"
-                                        : "text-slate-600 dark:text-slate-300"
-                                } block w-full px-4 py-2 text-sm  cursor-pointer`}
-                            >
-                                <div className="flex ltr:text-left rtl:text-right space-x-3 rtl:space-x-reverse">
-                                    <div className="flex-none">
-                                        <div className="h-8 w-8 bg-white dark:bg-slate-700 rounded-full relative">
-                                            <span
-                                                className={`${
-                                                    item.active
-                                                        ? "bg-secondary-500"
-                                                        : "bg-green-500"
-                                                } w-[10px] h-[10px] rounded-full border border-white dark:border-slate-700  inline-block absolute right-0 top-0`}
-                                            ></span>
-                                            <img
-                                                src={item.image}
-                                                alt=""
-                                                className="block w-full h-full object-cover rounded-full border hover:border-white border-transparent"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-slate-800 dark:text-slate-300 text-sm font-medium mb-1`">
-                                            {item.title}
-                                        </div>
-                                        <div className="text-sm hover:text-[#68768A] text-slate-600 dark:text-slate-300 mb-1">
-                                            {item.desc}
-                                        </div>
-                                        <div className="text-slate-400 dark:text-slate-400 text-sm">
-                                            3 min ago
-                                        </div>
-                                    </div>
-                                    {item.hasnotifaction && (
-                                        <div className="flex-0">
-                                            <span className="h-4 w-4 bg-danger-500 border border-white rounded-full text-[10px] flex items-center justify-center text-white">
-                                                {item.notification_count}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </Menu.Item>
-                ))}
             </div>
         </Dropdown>
     );

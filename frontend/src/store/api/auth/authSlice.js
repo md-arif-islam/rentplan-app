@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { clearProfile } from "../profile/profileSlice";
 
 // Initialize state from localStorage
 const getInitialState = () => {
@@ -67,6 +68,12 @@ export const authSlice = createSlice({
         },
     },
 });
+
+// Create a thunk middleware for logout to clear both auth and profile
+export const logOutAndClearProfile = () => (dispatch) => {
+    dispatch(clearProfile());
+    dispatch(logOut());
+};
 
 export const { setUser, logOut, setError, setLoading } = authSlice.actions;
 export default authSlice.reducer;

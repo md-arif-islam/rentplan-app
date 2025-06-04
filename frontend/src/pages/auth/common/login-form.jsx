@@ -3,6 +3,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import Textinput from "@/components/ui/Textinput";
 import { useLoginMutation } from "@/store/api/auth/authApiSlice";
 import { setUser } from "@/store/api/auth/authSlice";
+import { setProfile } from "@/store/api/profile/profileSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -46,12 +47,19 @@ const LoginForm = () => {
             }
 
             const userData = response.data.user;
+
+            // Save user data to auth slice
             dispatch(
                 setUser({
                     user: userData,
                     token: response.data.token,
                 })
             );
+
+            // Save profile data separately
+            if (userData.userProfile) {
+                dispatch(setProfile(userData.userProfile));
+            }
 
             toast.success("Login Successful");
 

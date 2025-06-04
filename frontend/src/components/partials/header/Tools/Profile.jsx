@@ -13,6 +13,9 @@ const Profile = () => {
     const user = useSelector((state) => state.auth.user);
     const profileData = useSelector((state) => state.profile.profile);
 
+    console.log("user", user);
+    console.log("profileData", profileData);
+
     let userRole =
         user?.role?.name == "super_admin"
             ? "Super Admin"
@@ -20,7 +23,9 @@ const Profile = () => {
             ? "Admin"
             : null;
 
-    const profileInfo = profileData || user?.profile;
+    const profileInfo = profileData || user?.user_profile;
+
+    console.log("profileInfo", profileInfo);
 
     const UserAvatar = profileInfo?.avatar
         ? `${import.meta.env.VITE_API_URL}/${profileInfo.avatar}`

@@ -1,23 +1,52 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const storedProfile = JSON.parse(localStorage.getItem("profile"));
+// Get profile from localStorage with error handling
+const getStoredProfile = () => {
+    try {
+        const profileData = localStorage.getItem("profile");
+        return profileData ? JSON.parse(profileData) : null;
+    } catch (error) {
+        console.error("Error parsing profile from localStorage:", error);
+        localStorage.removeItem("profile"); // Clear corrupted data
+        return null;
+    }
+};
 
 export const profileSlice = createSlice({
     name: "profile",
     initialState: {
-        profile: storedProfile || null,
+        profile: getStoredProfile(),
     },
     reducers: {
         setProfile: (state, action) => {
             state.profile = action.payload;
-            localStorage.setItem("profile", JSON.stringify(action.payload));
+            try {
+                localStorage.setItem("profile", JSON.stringify(action.payload));
+            } catch (error) {
+                console.error("Error storing profile to localStorage:", error);
+            }
+        },
+        updateProfile: (state, action) => {
+            state.profile = { ...state.profile, ...action.payload };
+            try {
+                localStorage.setItem("profile", JSON.stringify(state.profile));
+            } catch (error) {
+                console.error("Error updating profile in localStorage:", error);
+            }
         },
         clearProfile: (state) => {
             state.profile = null;
-            localStorage.removeItem("profile");
+            try {
+                localStorage.removeItem("profile");
+            } catch (error) {
+                console.error(
+                    "Error removing profile from localStorage:",
+                    error
+                );
+            }
         },
     },
 });
 
-export const { setProfile, clearProfile } = profileSlice.actions;
+export const { setProfile, updateProfile, clearProfile } = profileSlice.actions;
 export default profileSlice.reducer;
