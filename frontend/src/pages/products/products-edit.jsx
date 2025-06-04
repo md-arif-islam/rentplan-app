@@ -25,24 +25,30 @@ const schema = yup.object().shape({
         .number()
         .required("Product type is required")
         .oneOf([0, 1], "Invalid product type"),
-    price: yup.number().when("type", {
-        is: 0,
-        then: () =>
-            yup
-                .number()
-                .required("Price is required for simple products")
-                .min(0, "Price cannot be negative"),
-        otherwise: () => yup.number().nullable(),
-    }),
+    price: yup
+        .number()
+        .transform((value) => (isNaN(value) || value === "" ? null : value))
+        .when("type", {
+            is: 0,
+            then: () =>
+                yup
+                    .number()
+                    .transform((value) =>
+                        isNaN(value) || value === "" ? null : value
+                    )
+                    .required("Price is required for simple products")
+                    .min(0, "Price cannot be negative"),
+            otherwise: () => yup.number().nullable(),
+        }),
     stock: yup
         .number()
         .nullable()
-        .transform((value) => (isNaN(value) ? null : value)),
+        .transform((value) => (isNaN(value) || value === "" ? null : value)),
     specifications: yup.string().nullable(),
     woocommerce_product_id: yup
         .number()
         .nullable()
-        .transform((value) => (isNaN(value) ? null : value)),
+        .transform((value) => (isNaN(value) || value === "" ? null : value)),
     variations: yup.array().when("type", {
         is: 1,
         then: () =>
@@ -50,19 +56,28 @@ const schema = yup.object().shape({
                 .array()
                 .of(
                     yup.object().shape({
+                        id: yup
+                            .number()
+                            .nullable()
+                            .transform((value) =>
+                                isNaN(value) || value === "" ? null : value
+                            ),
                         variant_name: yup
                             .string()
                             .required("Variation name is required"),
                         sku: yup.string().nullable(),
                         price: yup
                             .number()
+                            .transform((value) =>
+                                isNaN(value) || value === "" ? null : value
+                            )
                             .required("Price is required for variations")
                             .min(0, "Price cannot be negative"),
                         stock: yup
                             .number()
                             .nullable()
                             .transform((value) =>
-                                isNaN(value) ? null : value
+                                isNaN(value) || value === "" ? null : value
                             ),
                         specifications: yup.string().nullable(),
                         attributes: yup.string().nullable(),
@@ -235,9 +250,37 @@ const ProductEdit = () => {
             // Convert type to number to ensure consistency
             formData.type = parseInt(formData.type);
 
-            // If simple product, remove variations
+            // Ensure numeric values are properly converted
             if (formData.type === 0) {
+                // Simple product
+                formData.price =
+                    formData.price === null || formData.price === ""
+                        ? null
+                        : Number(formData.price);
+                formData.stock =
+                    formData.stock === null || formData.stock === ""
+                        ? null
+                        : Number(formData.stock);
+                // Remove variations for simple product
                 delete formData.variations;
+            } else {
+                // Variable product
+                // Make sure prices and stock in variations are numbers
+                formData.variations = formData.variations.map((variation) => ({
+                    ...variation,
+                    id:
+                        variation.id === null || variation.id === ""
+                            ? null
+                            : Number(variation.id),
+                    price:
+                        variation.price === null || variation.price === ""
+                            ? 0
+                            : Number(variation.price),
+                    stock:
+                        variation.stock === null || variation.stock === ""
+                            ? null
+                            : Number(variation.stock),
+                }));
             }
 
             // Send update request

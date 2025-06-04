@@ -66,6 +66,7 @@ class ProductController extends Controller
                 'image_url' => 'nullable|string',
                 'woocommerce_product_id' => 'nullable|integer|unique:products',
                 'variations' => 'required_if:type,1|array',
+                'variations.*.id' => 'nullable|integer', // Make ID optional
                 'variations.*.variant_name' => 'required_if:type,1|string|max:255',
                 'variations.*.sku' => 'nullable|string|max:100|unique:product_variations,sku',
                 'variations.*.price' => 'required_if:type,1|numeric|min:0',
@@ -177,7 +178,7 @@ class ProductController extends Controller
                 'image_url' => 'nullable|string',
                 'woocommerce_product_id' => 'nullable|integer|unique:products,woocommerce_product_id,' . $id,
                 'variations' => 'required_if:type,1|array',
-                'variations.*.id' => 'nullable|integer|exists:product_variations,id',
+                'variations.*.id' => 'nullable|integer', // Make ID optional
                 'variations.*.variant_name' => 'required_if:type,1|string|max:255',
                 'variations.*.sku' => 'nullable|string|max:100',
                 'variations.*.price' => 'required_if:type,1|numeric|min:0',
