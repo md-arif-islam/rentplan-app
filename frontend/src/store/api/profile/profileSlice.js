@@ -16,6 +16,7 @@ export const profileSlice = createSlice({
     name: "profile",
     initialState: {
         profile: getStoredProfile(),
+        userRole: null, // Add user role to determine which endpoint to use
     },
     reducers: {
         setProfile: (state, action) => {
@@ -34,8 +35,12 @@ export const profileSlice = createSlice({
                 console.error("Error updating profile in localStorage:", error);
             }
         },
+        setUserRole: (state, action) => {
+            state.userRole = action.payload;
+        },
         clearProfile: (state) => {
             state.profile = null;
+            state.userRole = null;
             try {
                 localStorage.removeItem("profile");
             } catch (error) {
@@ -48,5 +53,6 @@ export const profileSlice = createSlice({
     },
 });
 
-export const { setProfile, updateProfile, clearProfile } = profileSlice.actions;
+export const { setProfile, updateProfile, clearProfile, setUserRole } =
+    profileSlice.actions;
 export default profileSlice.reducer;

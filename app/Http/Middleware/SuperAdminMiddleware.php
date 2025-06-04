@@ -27,6 +27,6 @@ class SuperAdminMiddleware
             return $next($request);
         }
 
-        return response()->json(['message' => 'You do not have access to this resource'], 403);
+        return response()->json(['message' => 'You do not have access to this resource (superadmin)'], 403);
     }
 }

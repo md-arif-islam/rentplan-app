@@ -1,9 +1,11 @@
 import Button from "@/components/ui/Button";
-
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
-import { useGetProfileByUserIdQuery } from "@/store/api/profile/profileApiSlice";
-import { setProfile } from "@/store/api/profile/profileSlice";
+import {
+    useGetAdminProfileByUserIdQuery,
+    useGetCompanyProfileByUserIdQuery,
+} from "@/store/api/profile/profileApiSlice";
+import { setProfile, setUserRole } from "@/store/api/profile/profileSlice";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
@@ -13,14 +15,44 @@ const Profile = () => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.auth.user);
 
-    const { data, isLoading, error, refetch } = useGetProfileByUserIdQuery(
-        user?.id,
-        {
-            refetchOnMountOrArgChange: true,
-            refetchOnReconnect: true,
-            refetchOnFocus: true,
+    // Determine which API endpoint to use based on user role
+    const userRole = user?.role?.name || "";
+    const isAdmin = userRole === "super_admin";
+    const isCompanyAdmin = userRole === "company_admin";
+
+    // Store the user role in the profile slice
+    useEffect(() => {
+        if (userRole) {
+            dispatch(setUserRole(userRole));
         }
-    );
+    }, [userRole, dispatch]);
+
+    // Use the appropriate query based on user role
+    const {
+        data: adminData,
+        isLoading: adminIsLoading,
+        error: adminError,
+        refetch: adminRefetch,
+    } = useGetAdminProfileByUserIdQuery(user?.id, {
+        skip: !isAdmin || !user?.id,
+        refetchOnMountOrArgChange: true,
+    });
+
+    const {
+        data: companyData,
+        isLoading: companyIsLoading,
+        error: companyError,
+        refetch: companyRefetch,
+    } = useGetCompanyProfileByUserIdQuery(user?.id, {
+        skip: !isCompanyAdmin || !user?.id,
+        refetchOnMountOrArgChange: true,
+    });
+
+    // Determine the actual data, loading and error states
+    const data = isAdmin ? adminData : companyData;
+    const isLoading = isAdmin ? adminIsLoading : companyIsLoading;
+    const error = isAdmin ? adminError : companyError;
+    const refetch = isAdmin ? adminRefetch : companyRefetch;
 
     useEffect(() => {
         if (data) {
@@ -28,6 +60,7 @@ const Profile = () => {
         }
     }, [data, dispatch]);
 
+    // Loading state
     if (isLoading) {
         return (
             <div className="space-y-5 profile-page">
@@ -41,6 +74,7 @@ const Profile = () => {
         );
     }
 
+    // Error state
     if (error) {
         return (
             <div className="space-y-5 profile-page">
@@ -49,8 +83,8 @@ const Profile = () => {
                         Error Loading Profile
                     </h2>
                     <p className="mb-4">
-                        We encountered an error while loading the profile data.
-                        Please try again later.
+                        {error?.data?.message ||
+                            "Could not load profile information"}
                     </p>
                     <button
                         onClick={refetch}
@@ -68,8 +102,10 @@ const Profile = () => {
         : null;
 
     const fullName = data?.name || "N/A";
+    const email = data?.user?.email || user?.email || "N/A";
 
-    const email = data?.user?.email || "N/A";
+    // Determine the correct route prefix for navigation based on user role
+    const routePrefix = isAdmin ? "/admin" : "/company";
 
     return (
         <div>
@@ -153,9 +189,9 @@ const Profile = () => {
                         icon="heroicons:arrow-left"
                         text="Back to Dashboard"
                         className="btn-outline-dark"
-                        onClick={() => navigate("/admin/dashboard")}
+                        onClick={() => navigate(`${routePrefix}/dashboard`)}
                     />
-                    <Link to={`/admin/profile/${data?.id}/edit`}>
+                    <Link to={`${routePrefix}/profile/${data?.id}/edit`}>
                         <Button
                             icon="heroicons:pencil-square"
                             text="Edit Profile"

@@ -31,8 +31,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class]
 // -------------------- Company Admin routes ----------------------
 Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::class])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'companyDashboard']);
-
-    // Company admin profiles
     Route::get('/profile/{id}', [UserProfileController::class, 'show']);
     Route::put('/profile/{id}', [UserProfileController::class, 'update']);
 

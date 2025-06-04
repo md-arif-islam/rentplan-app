@@ -13,9 +13,6 @@ const Profile = () => {
     const user = useSelector((state) => state.auth.user);
     const profileData = useSelector((state) => state.profile.profile);
 
-    console.log("user", user);
-    console.log("profileData", profileData);
-
     let userRole =
         user?.role?.name == "super_admin"
             ? "Super Admin"
@@ -24,8 +21,6 @@ const Profile = () => {
             : null;
 
     const profileInfo = profileData || user?.user_profile;
-
-    console.log("profileInfo", profileInfo);
 
     const UserAvatar = profileInfo?.avatar
         ? `${import.meta.env.VITE_API_URL}/${profileInfo.avatar}`
@@ -87,7 +82,13 @@ const Profile = () => {
             label: "Profile",
             icon: "heroicons-outline:user",
             action: () => {
-                navigate("/admin/profile");
+                if (user?.role?.name === "super_admin") {
+                    navigate("/admin/profile");
+                } else if (user?.role?.name === "company_admin") {
+                    navigate("/company/profile");
+                } else {
+                    navigate("/admin/profile");
+                }
             },
         },
         {

@@ -57,8 +57,8 @@ const LoginForm = () => {
             );
 
             // Save profile data separately
-            if (userData.userProfile) {
-                dispatch(setProfile(userData.userProfile));
+            if (userData.user_profile) {
+                dispatch(setProfile(userData.user_profile));
             }
 
             toast.success("Login Successful");

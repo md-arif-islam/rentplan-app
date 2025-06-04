@@ -5,12 +5,14 @@ import Icon from "@/components/ui/Icon";
 import Textinput from "@/components/ui/Textinput";
 
 import {
-    useGetProfileQuery,
-    useUpdateProfileMutation,
+    useGetAdminProfileQuery,
+    useGetCompanyProfileQuery,
+    useUpdateAdminProfileMutation,
+    useUpdateCompanyProfileMutation,
 } from "@/store/api/profile/profileApiSlice";
 import { setProfile } from "@/store/api/profile/profileSlice";
 import { useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -19,9 +21,42 @@ const ProfileEdit = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const { data: profile, isLoading, error } = useGetProfileQuery(id);
-    const [updateProfile, { isLoading: isUpdating }] =
-        useUpdateProfileMutation();
+    // Get user role to determine which API to use
+    const user = useSelector((state) => state.auth.user);
+    const userRole = user?.role?.name || "";
+    const isAdmin = userRole === "super_admin";
+    const isCompanyAdmin = userRole === "company_admin";
+
+    // Use the appropriate query and mutation based on user role
+    const {
+        data: adminProfile,
+        isLoading: adminIsLoading,
+        error: adminError,
+    } = useGetAdminProfileQuery(id, {
+        skip: !isAdmin || !id,
+    });
+
+    const {
+        data: companyProfile,
+        isLoading: companyIsLoading,
+        error: companyError,
+    } = useGetCompanyProfileQuery(id, {
+        skip: !isCompanyAdmin || !id,
+    });
+
+    const [updateAdminProfile, { isLoading: isAdminUpdating }] =
+        useUpdateAdminProfileMutation();
+    const [updateCompanyProfile, { isLoading: isCompanyUpdating }] =
+        useUpdateCompanyProfileMutation();
+
+    // Determine the actual profile data, loading and error states
+    const profile = isAdmin ? adminProfile : companyProfile;
+    const isLoading = isAdmin ? adminIsLoading : companyIsLoading;
+    const error = isAdmin ? adminError : companyError;
+    const isUpdating = isAdmin ? isAdminUpdating : isCompanyUpdating;
+
+    // Determine route prefix for navigation
+    const routePrefix = isAdmin ? "/admin" : "/company";
 
     const [formData, setFormData] = useState({
         first_name: "",
@@ -74,17 +109,30 @@ const ProfileEdit = () => {
         e.preventDefault();
         try {
             const name = `${formData.first_name} ${formData.last_name}`.trim();
-            const updatedProfile = await updateProfile({
+            const updateData = {
                 id,
                 name,
                 phone: formData.phone,
                 avatar: formData.avatar,
-            }).unwrap();
+            };
+
+            let updatedProfile;
+
+            // Use the appropriate update mutation based on user role
+            if (isAdmin) {
+                updatedProfile = await updateAdminProfile(updateData).unwrap();
+            } else if (isCompanyAdmin) {
+                updatedProfile = await updateCompanyProfile(
+                    updateData
+                ).unwrap();
+            }
+
             dispatch(setProfile(updatedProfile.data || updatedProfile));
             toast.success("Profile updated successfully");
-            navigate("/admin/profile");
+            navigate(`${routePrefix}/profile`);
         } catch (error) {
             toast.error(error?.data?.message || "Failed to update profile");
+            console.error("Profile update error:", error);
         }
     };
 
@@ -119,7 +167,7 @@ const ProfileEdit = () => {
                         text="Back to Profile"
                         icon="heroicons-outline:arrow-left"
                         className="btn-primary"
-                        onClick={() => navigate("/admin/profile")}
+                        onClick={() => navigate(`${routePrefix}/profile`)}
                     />
                 </div>
             </Card>
@@ -136,7 +184,7 @@ const ProfileEdit = () => {
                     icon="heroicons-outline:arrow-left"
                     text="Back"
                     className="btn-outline-dark"
-                    onClick={() => navigate("/admin/profile")}
+                    onClick={() => navigate(`${routePrefix}/profile`)}
                 />
             </div>
 
@@ -220,7 +268,7 @@ const ProfileEdit = () => {
                         icon="heroicons-outline:arrow-left"
                         text="Cancel"
                         className="btn-outline-dark"
-                        onClick={() => navigate("/admin/profile")}
+                        onClick={() => navigate(`${routePrefix}/profile`)}
                     />
                     <Button
                         type="submit"
