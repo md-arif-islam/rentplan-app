@@ -71,12 +71,15 @@ const UserEdit = () => {
     // Initialize form with user data when available
     useEffect(() => {
         if (user) {
+            console.log("User data loaded:", user); // Debug log
+
+            // Reset the form with values from the API
             reset({
                 email: user.email || "",
                 password: "", // Don't populate password for security
-                name: user.userProfile?.name || "",
-                phone: user.userProfile?.phone || "",
-                avatar: user.userProfile?.avatar || null,
+                name: user.user_profile?.name || "", // Check both possible paths
+                phone: user.user_profile?.phone || "",
+                avatar: user.user_profile?.avatar || null,
             });
         }
     }, [user, reset]);
@@ -98,6 +101,8 @@ const UserEdit = () => {
 
     const onSubmit = async (formData) => {
         try {
+            console.log("Submitting form with data:", formData); // Debug log
+
             // Keep the user's existing role_id
             const dataToSubmit = {
                 ...formData,
@@ -133,6 +138,9 @@ const UserEdit = () => {
             ? avatarValue
             : `${import.meta.env.VITE_API_URL}/${avatarValue}`
         : null;
+
+    // Get current form values for default values
+    const currentValues = watch();
 
     if (userLoading) {
         return <LoadingContent />;
@@ -196,6 +204,7 @@ const UserEdit = () => {
                             register={register}
                             name="name"
                             error={errors.name}
+                            defaultValue={currentValues.name} // Add the defaultValue
                         />
                         <Textinput
                             label="Email *"
@@ -204,6 +213,7 @@ const UserEdit = () => {
                             register={register}
                             name="email"
                             error={errors.email}
+                            defaultValue={currentValues.email} // Add the defaultValue
                         />
                         <Textinput
                             label="Password"
@@ -220,6 +230,7 @@ const UserEdit = () => {
                             register={register}
                             name="phone"
                             error={errors.phone}
+                            defaultValue={currentValues.phone} // Add the defaultValue
                         />
                     </div>
                 </Card>
