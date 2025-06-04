@@ -68,7 +68,7 @@ return new class extends Migration {
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
-        
+
         // Add an audit log table for keeping track of important auth events
         Schema::create('auth_logs', function (Blueprint $table) {
             $table->id();

@@ -2,12 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Customer;
+use App\Http\Requests\Customer\StoreCustomerRequest;
+use App\Http\Requests\Customer\UpdateCustomerRequest;
+use App\Services\CustomerService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
+    protected $customerService;
+    
+    /**
+     * Constructor
+     * 
+     * @param CustomerService $customerService
+     */
+    public function __construct(CustomerService $customerService)
+    {
+        $this->customerService = $customerService;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -15,71 +28,41 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-
-        $search = $request->input('search');
-        $perPage = $request->input('perPage', 10);
-
-        $query = Customer::where('company_id', $companyId);
-
-        // Apply search filter if provided
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            });
-        }
-
-        $customers = $query->paginate($perPage);
-
+        
+        $params = [
+            'search' => $request->input('search'),
+            'perPage' => $request->input('perPage', 10),
+        ];
+        
+        $customers = $this->customerService->getCustomers($companyId, $params);
+        
         return response()->json($customers);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCustomerRequest $request)
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'street' => 'nullable|string|max:255',
-            'house_number' => 'nullable|string|max:50',
-            'postal_code' => 'nullable|string|max:20',
-            'city' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-            'date_of_birth' => 'nullable|date',
-            'woocommerce_customer_id' => 'nullable|integer|unique:customers,woocommerce_customer_id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
+        
         try {
-            $customerData = $request->all();
-            $customerData['company_id'] = $companyId;
-
-            $customer = Customer::create($customerData);
-
+            // Add company ID to the validated data
+            $data = $request->validated();
+            $data['company_id'] = $companyId;
+            
+            // Create customer through service
+            $customer = $this->customerService->createCustomer($data);
+            
             return response()->json([
                 'message' => 'Customer created successfully',
                 'data' => $customer,
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to create customer',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
     }
 
@@ -90,59 +73,40 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-
-        $customer = Customer::where('id', $id)
-            ->where('company_id', $companyId)
-            ->firstOrFail();
-
-        return response()->json($customer);
+        
+        try {
+            $customer = $this->customerService->getCustomer($id, $companyId);
+            
+            return response()->json($customer);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 404);
+        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCustomerRequest $request, $id)
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-
-        $customer = Customer::where('id', $id)
-            ->where('company_id', $companyId)
-            ->firstOrFail();
-
-        $validator = Validator::make($request->all(), [
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:50',
-            'street' => 'nullable|string|max:255',
-            'house_number' => 'nullable|string|max:50',
-            'postal_code' => 'nullable|string|max:20',
-            'city' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-            'date_of_birth' => 'nullable|date',
-            'woocommerce_customer_id' => 'nullable|integer|unique:customers,woocommerce_customer_id,' . $id,
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
+        
         try {
-            $customer->update($request->all());
-
+            $data = $request->validated();
+            
+            // Update customer through service
+            $customer = $this->customerService->updateCustomer($id, $data, $companyId);
+            
             return response()->json([
                 'message' => 'Customer updated successfully',
                 'data' => $customer,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to update customer',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
     }
 
@@ -153,22 +117,17 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-
-        $customer = Customer::where('id', $id)
-            ->where('company_id', $companyId)
-            ->firstOrFail();
-
+        
         try {
-            $customer->delete();
-
+            $this->customerService->deleteCustomer($id, $companyId);
+            
             return response()->json([
                 'message' => 'Customer deleted successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Failed to delete customer',
-                'error' => $e->getMessage(),
-            ], 500);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 500);
         }
     }
 }

@@ -9,6 +9,7 @@ use App\Repositories\UserRepository;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -48,12 +49,21 @@ class AuthService
             throw new \Exception('Invalid credentials', 401);
         }
         
+        // Check if account is active
+        if ($user->status === 'suspended') {
+            $this->authLogger->logFailedLogin($email);
+            throw new \Exception('This account has been suspended. Please contact support.', 403);
+        }
+        
         // Update last login information
         $user->last_login_at = now();
         $user->last_login_ip = request()->ip();
         $user->save();
         
         $token = $user->createToken($email)->plainTextToken;
+        
+        // Load relationships
+        $user->load(['role', 'userProfile']);
         
         // Log successful login
         $this->authLogger->logLogin($user->id, $user->email);
@@ -93,6 +103,20 @@ class AuthService
             return Password::INVALID_USER;
         }
         
+        // Implement throttling for password reset requests
+        $key = 'password-reset:'.$email;
+        
+        // Allow only 3 password reset requests per 60 minutes
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            $this->authLogger->log('password-reset-throttled', null, $email, [
+                'seconds_until_retry' => RateLimiter::availableIn($key)
+            ]);
+            
+            return Password::RESET_THROTTLED;
+        }
+        
+        RateLimiter::hit($key, 60 * 60); // 1 hour
+        
         $status = Password::sendResetLink(
             ['email' => $email],
             function ($user, $token) {
@@ -130,6 +154,9 @@ class AuthService
             $user->setRememberToken(Str::random(60));
             $user->force_password_change = false;
             $user->save();
+            
+            // Clear any login throttling for this user
+            RateLimiter::clear('login:'.$email);
             
             event(new PasswordReset($user));
             

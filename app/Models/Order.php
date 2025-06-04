@@ -17,10 +17,11 @@ class Order extends Model
      */
     protected $fillable = [
         'customer_id',
-        'woocommerce_order_id',
+        'product_id',
         'start_date',
         'end_date',
         'order_status',
+        'woocommerce_order_id',
         'invoice_street',
         'invoice_postal_code',
         'invoice_house_number',
@@ -31,7 +32,6 @@ class Order extends Model
         'delivery_house_number',
         'delivery_city',
         'delivery_country',
-        'product_id',
     ];
 
     /**
@@ -40,8 +40,8 @@ class Order extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     /**
@@ -53,22 +53,10 @@ class Order extends Model
     }
 
     /**
-     * Get the product that belongs to the order.
+     * Get the product associated with the order.
      */
     public function product()
     {
         return $this->belongsTo(Product::class);
-    }
-
-    /**
-     * Calculate the total days for the rental period
-     */
-    public function getRentalDaysAttribute()
-    {
-        if (!$this->start_date || !$this->end_date) {
-            return null;
-        }
-
-        return $this->start_date->diffInDays($this->end_date) + 1;
     }
 }

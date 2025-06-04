@@ -13,8 +13,11 @@ use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 // -------------------- Guest routes related to authentication ----------------------
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/send-reset-link-email', [AuthController::class, 'sendResetLinkEmail']);
+Route::middleware('throttle:5,1')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/send-reset-link-email', [AuthController::class, 'sendResetLinkEmail']);
+});
+
 Route::post('/logout', [AuthController::class, 'logout']);
 Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
@@ -22,7 +25,7 @@ Route::get('/user', [AuthController::class, 'authCheck']);
 
 
 // -------------------- Super Admin routes ----------------------
-Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
+Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class, 'throttle:60,1'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard']);
 
     // Profiles
@@ -42,7 +45,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class]
 });
 
 // -------------------- Company Admin routes ----------------------
-Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::class])->group(function () {
+Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::class, 'throttle:60,1'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'companyDashboard']);
     Route::get('/profile/{id}', [UserProfileController::class, 'show']);
     Route::put('/profile/{id}', [UserProfileController::class, 'update']);
@@ -80,7 +83,7 @@ Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::cl
 });
 
 // -------------------- Public routes ----------------------
-Route::prefix('public')->group(function () {
+Route::prefix('public')->middleware('throttle:30,1')->group(function () {
     // Public routes here
 });
 

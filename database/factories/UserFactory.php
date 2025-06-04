@@ -4,41 +4,70 @@ namespace Database\Factories;
 
 use App\Models\Company;
 use App\Models\Role;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
+/**
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ */
 class UserFactory extends Factory
 {
-    protected $model = User::class;
-
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [
-            'company_id' => Company::factory(),
-            'role_id' => null,
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => bcrypt('12345678'),
+            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
+            'company_id' => function() {
+                return Company::factory()->create()->id;
+            },
+            'role_id' => function() {
+                return Role::where('name', 'company_admin')->first()->id;
+            },
+            'status' => 'active',
+            'force_password_change' => false,
+            'last_login_at' => $this->faker->dateTimeThisMonth(),
+            'last_login_ip' => $this->faker->ipv4(),
         ];
     }
 
-    public function withRole($roleName)
+    /**
+     * Indicate that the model's email address should be unverified.
+     */
+    public function unverified(): static
     {
-        return $this->state(function () use ($roleName) {
+        return $this->state(fn (array $attributes) => [
+            'email_verified_at' => null,
+        ]);
+    }
+    
+    /**
+     * Configure the model to be a super admin.
+     */
+    public function superAdmin(): static
+    {
+        return $this->state(function (array $attributes) {
             return [
-                'role_id' => Role::firstWhere('name', $roleName)?->id
-                    ?? Role::create(['name' => $roleName, 'scope' => 'company'])->id,
+                'role_id' => Role::where('name', 'super_admin')->first()->id,
             ];
         });
     }
-
-    public function unverified()
+    
+    /**
+     * Configure the model to be a company admin for an existing company.
+     */
+    public function forCompany(Company $company): static
     {
-        return $this->state(function () {
+        return $this->state(function (array $attributes) use ($company) {
             return [
-                'email_verified_at' => null,
+                'company_id' => $company->id,
+                'role_id' => Role::where('name', 'company_admin')->first()->id,
             ];
         });
     }

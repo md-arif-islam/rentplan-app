@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class AuthLog extends Model
 {
     use HasFactory;
-    
+
     /**
      * The attributes that are mass assignable.
      *
@@ -22,7 +22,7 @@ class AuthLog extends Model
         'user_agent',
         'metadata',
     ];
-    
+
     /**
      * The attributes that should be cast.
      *
@@ -31,9 +31,9 @@ class AuthLog extends Model
     protected $casts = [
         'metadata' => 'array',
     ];
-    
+
     /**
-     * Get the user that owns the log entry
+     * Get the user that owns this log entry.
      */
     public function user()
     {

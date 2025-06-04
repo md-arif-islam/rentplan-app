@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Role;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class RoleSeeder extends Seeder
 {
@@ -13,27 +12,21 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $roles = [
-            [
-                'name' => 'super_admin',
-                'scope' => 'platform',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'company_admin',
-                'scope' => 'company',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'name' => 'employee',
-                'scope' => 'company',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ];
-
-        DB::table('roles')->insert($roles);
+        // Create platform level roles
+        Role::create([
+            'name' => 'super_admin',
+            'scope' => 'platform',
+        ]);
+        
+        // Create company level roles
+        Role::create([
+            'name' => 'company_admin',
+            'scope' => 'company',
+        ]);
+        
+        Role::create([
+            'name' => 'company_user',
+            'scope' => 'company',
+        ]);
     }
 }

@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\User;
-use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -12,13 +11,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class UserProfileFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
-     *
-     * @var string
-     */
-    protected $model = UserProfile::class;
-
-    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -26,10 +18,25 @@ class UserProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
+            'user_id' => function() {
+                return User::factory()->create()->id;
+            },
             'name' => $this->faker->name(),
             'phone' => $this->faker->phoneNumber(),
-            'avatar' => null,
+            'avatar' => null, // No avatar by default, can be set in specific test cases
         ];
+    }
+    
+    /**
+     * Create a profile for an existing user
+     */
+    public function forUser(User $user): static
+    {
+        return $this->state(function (array $attributes) use ($user) {
+            return [
+                'user_id' => $user->id,
+                'name' => $this->faker->name(),
+            ];
+        });
     }
 }

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuthLog;
 use Illuminate\Http\Request;
+use Jenssegers\Agent\Agent;
 
 class AuthLoggerService
 {
@@ -19,6 +20,30 @@ class AuthLoggerService
     public function log(string $action, ?int $userId = null, ?string $email = null, array $metadata = []): void
     {
         $request = request();
+        $agent = new Agent();
+        $agent->setUserAgent($request->userAgent());
+        
+        // Get useful information from Agent
+        $deviceType = $this->getDeviceType($agent);
+        $browser = $agent->browser();
+        $browserVersion = $agent->version($browser);
+        $platform = $agent->platform();
+        $platformVersion = $agent->version($platform);
+        
+        $agentInfo = [
+            'browser' => $browser,
+            'browser_version' => $browserVersion,
+            'platform' => $platform,
+            'platform_version' => $platformVersion,
+            'device_type' => $deviceType,
+            'is_mobile' => $agent->isMobile(),
+            'is_tablet' => $agent->isTablet(),
+            'is_desktop' => $agent->isDesktop(),
+            'is_robot' => $agent->isRobot(),
+        ];
+        
+        // Merge agent info with provided metadata
+        $enhancedMetadata = array_merge($metadata, ['user_agent_details' => $agentInfo]);
         
         AuthLog::create([
             'user_id' => $userId,
@@ -26,8 +51,29 @@ class AuthLoggerService
             'action' => $action,
             'ip_address' => $request->ip(),
             'user_agent' => $request->userAgent(),
-            'metadata' => $metadata,
+            'metadata' => $enhancedMetadata,
         ]);
+    }
+    
+    /**
+     * Get device type based on Agent detection
+     *
+     * @param Agent $agent
+     * @return string
+     */
+    private function getDeviceType(Agent $agent): string
+    {
+        if ($agent->isTablet()) {
+            return 'tablet';
+        } elseif ($agent->isPhone()) {
+            return 'phone';
+        } elseif ($agent->isRobot()) {
+            return 'robot';
+        } elseif ($agent->isDesktop()) {
+            return 'desktop';
+        }
+        
+        return 'unknown';
     }
     
     /**

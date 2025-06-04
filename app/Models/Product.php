@@ -17,13 +17,13 @@ class Product extends Model
      */
     protected $fillable = [
         'company_id',
-        'woocommerce_product_id',
-        'type',
         'name',
+        'type',
         'price',
-        'image_url',
-        'specifications',
         'stock',
+        'specifications',
+        'image_url',
+        'woocommerce_product_id',
     ];
 
     /**
@@ -32,8 +32,7 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2',
-        'specifications' => 'array',
+        'price' => 'float',
         'stock' => 'integer',
         'type' => 'integer',
     ];
@@ -45,12 +44,44 @@ class Product extends Model
     {
         return $this->belongsTo(Company::class);
     }
-
+    
     /**
      * Get the variations for the product.
      */
     public function variations()
     {
         return $this->hasMany(ProductVariation::class);
+    }
+    
+    /**
+     * Get the orders for the product.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+    
+    /**
+     * Scope a query to only include products of a specific type.
+     */
+    public function scopeOfType($query, $type)
+    {
+        return $query->where('type', $type);
+    }
+    
+    /**
+     * Scope a query to only include simple products.
+     */
+    public function scopeSimple($query)
+    {
+        return $query->where('type', 0);
+    }
+    
+    /**
+     * Scope a query to only include variable products.
+     */
+    public function scopeVariable($query)
+    {
+        return $query->where('type', 1);
     }
 }

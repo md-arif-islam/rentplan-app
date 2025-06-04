@@ -2,12 +2,25 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Http\Requests\UserProfile\UpdateProfileRequest;
 use App\Models\UserProfile;
+use App\Services\UserProfileService;
 use Illuminate\Http\Request;
 
 class UserProfileController extends Controller
 {
+    protected $userProfileService;
+    
+    /**
+     * Constructor
+     * 
+     * @param UserProfileService $userProfileService
+     */
+    public function __construct(UserProfileService $userProfileService)
+    {
+        $this->userProfileService = $userProfileService;
+    }
+    
     /**
      * Display a listing of the resource.
      */
@@ -37,8 +50,14 @@ class UserProfileController extends Controller
      */
     public function show($id)
     {
-        $profile = UserProfile::with('user')->findOrFail($id);
-        return response()->json($profile);
+        try {
+            $profile = $this->userProfileService->getProfile($id);
+            return response()->json($profile);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 404);
+        }
     }
 
     /**
@@ -46,8 +65,14 @@ class UserProfileController extends Controller
      */
     public function showByUserId($userId)
     {
-        $profile = UserProfile::where('user_id', $userId)->with('user')->firstOrFail();
-        return response()->json($profile);
+        try {
+            $profile = $this->userProfileService->getProfileByUserId($userId);
+            return response()->json($profile);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], $e->getCode() ?: 404);
+        }
     }
 
     /**
@@ -61,30 +86,21 @@ class UserProfileController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProfileRequest $request, $id)
     {
-        $profile = UserProfile::findOrFail($id);
-
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'avatar' => 'nullable|string',
-        ]);
-
-        if (isset($validated['avatar']) && preg_match('/^data:image\//', $validated['avatar'])) {
-            try {
-                $validated['avatar'] = $this->saveImage($validated['avatar']);
-            } catch (\Exception $e) {
-                return response()->json(['error' => $e->getMessage()], 422);
-            }
+        try {
+            $profile = $this->userProfileService->updateProfile($id, $request->validated());
+            
+            return response()->json([
+                'message' => 'Profile updated successfully',
+                'data' => $profile,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'error' => $e->getMessage()
+            ], $e->getCode() ?: 422);
         }
-
-        $profile->update($validated);
-
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'data' => $profile,
-        ]);
     }
 
     /**
@@ -93,42 +109,5 @@ class UserProfileController extends Controller
     public function destroy(UserProfile $profile)
     {
         //
-    }
-
-    /**
-     * Save Base64 image to storage.
-     */
-    private function saveImage($image)
-    {
-        if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
-            $image = substr($image, strpos($image, ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, gif
-
-            if (!in_array($type, ['jpg', 'jpeg', 'gif', 'png'])) {
-                throw new \Exception('Invalid image type');
-            }
-
-            $image = str_replace(' ', '+', $image);
-            $image = base64_decode($image);
-
-            if ($image === false) {
-                throw new \Exception('Base64 decode failed');
-            }
-        } else {
-            throw new \Exception('Did not match data URI with image data');
-        }
-
-        $dir = 'images/profiles/';
-        $file = \Str::random() . '.' . $type;
-        $absolutePath = public_path($dir);
-        $relativePath = $dir . $file;
-
-        if (!\File::exists($absolutePath)) {
-            \File::makeDirectory($absolutePath, 0755, true);
-        }
-
-        file_put_contents($relativePath, $image);
-
-        return $relativePath;
     }
 }

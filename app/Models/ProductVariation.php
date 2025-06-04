@@ -17,14 +17,14 @@ class ProductVariation extends Model
      */
     protected $fillable = [
         'product_id',
-        'woocommerce_variation_id',
         'variant_name',
         'sku',
         'price',
-        'image_url',
-        'specifications',
         'stock',
+        'specifications',
         'attributes',
+        'image_url',
+        'woocommerce_variation_id',
     ];
 
     /**
@@ -33,10 +33,9 @@ class ProductVariation extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2',
-        'specifications' => 'array',
-        'attributes' => 'array',
+        'price' => 'float',
         'stock' => 'integer',
+        'attributes' => 'json',
     ];
 
     /**

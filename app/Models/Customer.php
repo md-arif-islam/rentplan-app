@@ -16,27 +16,17 @@ class Customer extends Model
      * @var array<string>
      */
     protected $fillable = [
+        'company_id',
         'first_name',
         'last_name',
-        'company_id',
-        'woocommerce_customer_id',
+        'email',
+        'phone',
         'street',
-        'postal_code',
         'house_number',
+        'postal_code',
         'city',
         'country',
-        'phone',
-        'email',
-        'date_of_birth',
-    ];
-
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
-    protected $casts = [
-        'date_of_birth' => 'date',
+        'woocommerce_customer_id',
     ];
 
     /**
@@ -46,14 +36,22 @@ class Customer extends Model
     {
         return $this->belongsTo(Company::class);
     }
-
+    
     /**
-     * Get the full name of the customer.
+     * Get the orders for the customer.
+     */
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+    
+    /**
+     * Get the customer's full name.
      *
      * @return string
      */
     public function getFullNameAttribute()
     {
-        return trim("{$this->first_name} {$this->last_name}");
+        return "{$this->first_name} {$this->last_name}";
     }
 }
