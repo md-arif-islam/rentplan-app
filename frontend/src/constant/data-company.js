@@ -17,6 +17,12 @@ export const menuItems = [
     },
 
     {
+        title: "Products",
+        icon: "heroicons-outline:cube",
+        link: "products",
+    },
+
+    {
         isHeadr: true,
         title: "Settings",
     },

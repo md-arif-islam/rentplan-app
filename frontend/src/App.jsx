@@ -31,6 +31,11 @@ const CustomersCreate = lazy(() =>
 );
 const CustomersEdit = lazy(() => import("./pages/customers/customers-edit"));
 
+const Products = lazy(() => import("./pages/products/products"));
+const ProductsShow = lazy(() => import("./pages/products/products-show"));
+const ProductsCreate = lazy(() => import("./pages/products/products-create"));
+const ProductsEdit = lazy(() => import("./pages/products/products-edit"));
+
 const Error = lazy(() => import("./pages/404"));
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -140,6 +145,18 @@ function App() {
                     <Route
                         path="customers/:id/edit"
                         element={<CustomersEdit />}
+                    />
+
+                    {/* Product management routes */}
+                    <Route path="products" element={<Products />} />
+                    <Route
+                        path="products/create"
+                        element={<ProductsCreate />}
+                    />
+                    <Route path="products/:id" element={<ProductsShow />} />
+                    <Route
+                        path="products/:id/edit"
+                        element={<ProductsEdit />}
                     />
 
                     <Route path="*" element={<Navigate to="/404" />} />
