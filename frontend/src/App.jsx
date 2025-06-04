@@ -1,6 +1,7 @@
-import { lazy, useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const AdminDashboard = lazy(() => import("./pages/dashboard/AdminDashboard"));
 const CompanyDashboard = lazy(() =>
@@ -71,15 +72,39 @@ function App() {
         }
     }, [isAuth, user, navigate]);
 
+    // Wrap lazy-loaded components with ErrorBoundary
+    const wrapWithErrorBoundary = (Component) => (
+        <ErrorBoundary>
+            <Suspense
+                fallback={
+                    <div className="flex justify-center items-center h-screen">
+                        Loading...
+                    </div>
+                }
+            >
+                <Component />
+            </Suspense>
+        </ErrorBoundary>
+    );
+
     return (
         <main className="App relative">
             <Routes>
                 {/* Auth routes */}
                 <Route path="/" element={<AuthLayout />}>
                     <Route index element={<Navigate to="/login" />} />
-                    <Route path="login" element={<Login />} />
-                    <Route path="forgot-password" element={<ForgotPass />} />
-                    <Route path="reset-password" element={<ResetPassword />} />
+                    <Route
+                        path="login"
+                        element={wrapWithErrorBoundary(Login)}
+                    />
+                    <Route
+                        path="forgot-password"
+                        element={wrapWithErrorBoundary(ForgotPass)}
+                    />
+                    <Route
+                        path="reset-password"
+                        element={wrapWithErrorBoundary(ResetPassword)}
+                    />
                 </Route>
 
                 {/* Super Admin routes */}
@@ -97,19 +122,34 @@ function App() {
                     }
                 >
                     <Route index element={<Navigate to="dashboard" />} />
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="profile/:id/edit" element={<ProfileEdit />} />
+                    <Route
+                        path="dashboard"
+                        element={wrapWithErrorBoundary(AdminDashboard)}
+                    />
+                    <Route
+                        path="profile"
+                        element={wrapWithErrorBoundary(Profile)}
+                    />
+                    <Route
+                        path="profile/:id/edit"
+                        element={wrapWithErrorBoundary(ProfileEdit)}
+                    />
 
-                    <Route path="companies" element={<Companies />} />
+                    <Route
+                        path="companies"
+                        element={wrapWithErrorBoundary(Companies)}
+                    />
                     <Route
                         path="companies/create"
-                        element={<CompaniesCreate />}
+                        element={wrapWithErrorBoundary(CompaniesCreate)}
                     />
-                    <Route path="companies/:id" element={<CompaniesShow />} />
+                    <Route
+                        path="companies/:id"
+                        element={wrapWithErrorBoundary(CompaniesShow)}
+                    />
                     <Route
                         path="companies/:id/edit"
-                        element={<CompaniesEdit />}
+                        element={wrapWithErrorBoundary(CompaniesEdit)}
                     />
 
                     <Route path="*" element={<Navigate to="/404" />} />
@@ -130,50 +170,95 @@ function App() {
                     }
                 >
                     <Route index element={<Navigate to="dashboard" />} />
-                    <Route path="dashboard" element={<CompanyDashboard />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="profile/:id/edit" element={<ProfileEdit />} />
+                    <Route
+                        path="dashboard"
+                        element={wrapWithErrorBoundary(CompanyDashboard)}
+                    />
+                    <Route
+                        path="profile"
+                        element={wrapWithErrorBoundary(Profile)}
+                    />
+                    <Route
+                        path="profile/:id/edit"
+                        element={wrapWithErrorBoundary(ProfileEdit)}
+                    />
 
                     {/* User management routes */}
-                    <Route path="users" element={<Users />} />
-                    <Route path="users/create" element={<UsersCreate />} />
-                    <Route path="users/:id" element={<UsersShow />} />
-                    <Route path="users/:id/edit" element={<UsersEdit />} />
+                    <Route
+                        path="users"
+                        element={wrapWithErrorBoundary(Users)}
+                    />
+                    <Route
+                        path="users/create"
+                        element={wrapWithErrorBoundary(UsersCreate)}
+                    />
+                    <Route
+                        path="users/:id"
+                        element={wrapWithErrorBoundary(UsersShow)}
+                    />
+                    <Route
+                        path="users/:id/edit"
+                        element={wrapWithErrorBoundary(UsersEdit)}
+                    />
 
                     {/* Customer management routes */}
-                    <Route path="customers" element={<Customers />} />
+                    <Route
+                        path="customers"
+                        element={wrapWithErrorBoundary(Customers)}
+                    />
                     <Route
                         path="customers/create"
-                        element={<CustomersCreate />}
+                        element={wrapWithErrorBoundary(CustomersCreate)}
                     />
-                    <Route path="customers/:id" element={<CustomersShow />} />
+                    <Route
+                        path="customers/:id"
+                        element={wrapWithErrorBoundary(CustomersShow)}
+                    />
                     <Route
                         path="customers/:id/edit"
-                        element={<CustomersEdit />}
+                        element={wrapWithErrorBoundary(CustomersEdit)}
                     />
 
                     {/* Product management routes */}
-                    <Route path="products" element={<Products />} />
+                    <Route
+                        path="products"
+                        element={wrapWithErrorBoundary(Products)}
+                    />
                     <Route
                         path="products/create"
-                        element={<ProductsCreate />}
+                        element={wrapWithErrorBoundary(ProductsCreate)}
                     />
-                    <Route path="products/:id" element={<ProductsShow />} />
+                    <Route
+                        path="products/:id"
+                        element={wrapWithErrorBoundary(ProductsShow)}
+                    />
                     <Route
                         path="products/:id/edit"
-                        element={<ProductsEdit />}
+                        element={wrapWithErrorBoundary(ProductsEdit)}
                     />
 
                     {/* Order management routes */}
-                    <Route path="orders" element={<Orders />} />
-                    <Route path="orders/create" element={<OrdersCreate />} />
-                    <Route path="orders/:id" element={<OrdersShow />} />
-                    <Route path="orders/:id/edit" element={<OrdersEdit />} />
+                    <Route
+                        path="orders"
+                        element={wrapWithErrorBoundary(Orders)}
+                    />
+                    <Route
+                        path="orders/create"
+                        element={wrapWithErrorBoundary(OrdersCreate)}
+                    />
+                    <Route
+                        path="orders/:id"
+                        element={wrapWithErrorBoundary(OrdersShow)}
+                    />
+                    <Route
+                        path="orders/:id/edit"
+                        element={wrapWithErrorBoundary(OrdersEdit)}
+                    />
 
                     <Route path="*" element={<Navigate to="/404" />} />
                 </Route>
 
-                <Route path="/404" element={<Error />} />
+                <Route path="/404" element={wrapWithErrorBoundary(Error)} />
                 <Route path="*" element={<Navigate to="/404" />} />
             </Routes>
         </main>
