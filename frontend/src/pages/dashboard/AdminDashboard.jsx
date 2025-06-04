@@ -1,60 +1,68 @@
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
+import { useGetAdminDashboardStatsQuery } from "@/store/api/dashboard/dashboardApiSlice";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
-    // Static dashboard data
-    const stats = {
-        totalCompanies: 24,
-        activeCompanies: 18,
-        trialCompanies: 5,
-        inactiveCompanies: 1,
-        totalUsers: 124,
-        recentLogins: 17,
-        totalRevenue: 12750.5,
-        monthlyRevenue: 2450.75,
+    const {
+        data: dashboardData,
+        isLoading,
+        isError,
+        error,
+    } = useGetAdminDashboardStatsQuery();
+
+    if (isLoading) {
+        return (
+            <div className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    {[1, 2, 3, 4].map((i) => (
+                        <Card key={i}>
+                            <div className="h-24 animate-pulse bg-slate-200 dark:bg-slate-700 rounded"></div>
+                        </Card>
+                    ))}
+                </div>
+                <Card>
+                    <div className="h-[335px] animate-pulse bg-slate-200 dark:bg-slate-700 rounded"></div>
+                </Card>
+            </div>
+        );
+    }
+
+    if (isError) {
+        return (
+            <Card>
+                <div className="flex flex-col items-center justify-center h-60">
+                    <Icon
+                        icon="heroicons-outline:exclamation-circle"
+                        className="text-danger-500 text-4xl mb-2"
+                    />
+                    <h3 className="text-xl font-medium text-slate-900">
+                        Error Loading Dashboard Data
+                    </h3>
+                    <p className="text-sm text-slate-600 mt-1 mb-4">
+                        {error?.data?.message ||
+                            "Could not load dashboard information"}
+                    </p>
+                </div>
+            </Card>
+        );
+    }
+
+    // Extract data from the API response
+    const stats = dashboardData?.stats || {
+        totalCompanies: 0,
+        activeCompanies: 0,
+        trialCompanies: 0,
+        inactiveCompanies: 0,
+        totalUsers: 0,
+        recentLogins: 0,
+        totalRevenue: 0,
+        monthlyRevenue: 0,
     };
 
-    // Static recent activity
-    const recentActivity = [
-        {
-            type: "company",
-            message: 'New company "Tech Solutions Inc." was created',
-            timestamp: "5 minutes ago",
-        },
-        {
-            type: "login",
-            message: "admin@example.com logged in",
-            timestamp: "10 minutes ago",
-        },
-        {
-            type: "company",
-            message: 'Company "Global Services Ltd." updated their plan',
-            timestamp: "1 hour ago",
-        },
-        {
-            type: "login",
-            message: "john.doe@company.com logged in",
-            timestamp: "3 hours ago",
-        },
-    ];
-
-    // Static upcoming plan expirations
-    const upcomingExpiries = [
-        {
-            id: 1,
-            name: "ABC Rentals",
-            plan: "Premium",
-            expiry_date: "Dec 25, 2023",
-            days_left: 2,
-        },
-        {
-            id: 2,
-            name: "XYZ Equipment",
-            plan: "Standard",
-            expiry_date: "Dec 28, 2023",
-            days_left: 5,
-        },
-    ];
+    const companyTrends = dashboardData?.companyTrends || [];
+    const recentActivity = dashboardData?.recentActivity || [];
+    const upcomingExpiries = dashboardData?.upcomingExpiries || [];
 
     return (
         <div className="space-y-5">
@@ -74,8 +82,13 @@ const AdminDashboard = () => {
                             {stats.totalCompanies}
                         </div>
                         <div className="flex items-center space-x-2">
-                            <span className="text-sm text-primary-500 hover:underline cursor-pointer">
-                                View all companies
+                            <span className="text-sm text-slate-500">
+                                <Link
+                                    to="/admin/companies"
+                                    className="text-primary-500 hover:underline"
+                                >
+                                    View all companies
+                                </Link>
                             </span>
                         </div>
                     </div>
@@ -169,144 +182,214 @@ const AdminDashboard = () => {
                 </Card>
             </div>
 
+            {/* Company Growth Chart */}
+            <Card title="Company Growth (Last 12 Months)">
+                <div className="h-[335px] flex flex-col items-center justify-center">
+                    <div className="grid grid-cols-12 w-full h-48 items-end gap-1 mb-4 px-4">
+                        {companyTrends.map((item, index) => (
+                            <div
+                                key={index}
+                                className="relative flex flex-col items-center justify-center h-full"
+                            >
+                                <div
+                                    className="bg-primary-500 w-full rounded-t-md"
+                                    style={{
+                                        height: `${
+                                            item.count
+                                                ? Math.max(
+                                                      20,
+                                                      (item.count /
+                                                          Math.max(
+                                                              ...companyTrends.map(
+                                                                  (i) => i.count
+                                                              )
+                                                          )) *
+                                                          100
+                                                  )
+                                                : 2
+                                        }%`,
+                                    }}
+                                ></div>
+                                <span className="absolute -bottom-6 text-[10px] text-slate-600 rotate-45 origin-top-left">
+                                    {item.month}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </Card>
+
             {/* Recent Activity and Upcoming Plan Expirations */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <Card title="Recent Activity">
-                    <ul className="space-y-4">
-                        {recentActivity.map((activity, index) => (
-                            <li
-                                key={index}
-                                className="border-b border-slate-100 pb-4 last:border-0 last:pb-0"
-                            >
-                                <div className="flex items-start">
-                                    <div
-                                        className={`h-9 w-9 rounded-full flex items-center justify-center mr-3 ${
-                                            activity.type === "login"
-                                                ? "bg-success-500/10"
-                                                : activity.type === "company"
-                                                ? "bg-primary-500/10"
-                                                : "bg-warning-500/10"
-                                        }`}
-                                    >
-                                        <Icon
-                                            icon={
+                    {recentActivity.length > 0 ? (
+                        <ul className="space-y-4">
+                            {recentActivity.map((activity, index) => (
+                                <li
+                                    key={index}
+                                    className="border-b border-slate-100 pb-4 last:border-0 last:pb-0"
+                                >
+                                    <div className="flex items-start">
+                                        <div
+                                            className={`h-9 w-9 rounded-full flex items-center justify-center mr-3 ${
                                                 activity.type === "login"
-                                                    ? "heroicons-outline:login"
+                                                    ? "bg-success-500/10"
                                                     : activity.type ===
                                                       "company"
-                                                    ? "heroicons-outline:office-building"
-                                                    : "heroicons-outline:user"
-                                            }
-                                            className={`text-lg ${
-                                                activity.type === "login"
-                                                    ? "text-success-500"
-                                                    : activity.type ===
-                                                      "company"
-                                                    ? "text-primary-500"
-                                                    : "text-warning-500"
+                                                    ? "bg-primary-500/10"
+                                                    : "bg-warning-500/10"
                                             }`}
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <h6 className="text-sm font-medium text-slate-900">
-                                            {activity.message}
-                                        </h6>
-                                        <div className="text-xs text-slate-500 mt-1">
-                                            {activity.timestamp}
+                                        >
+                                            <Icon
+                                                icon={
+                                                    activity.type === "login"
+                                                        ? "heroicons-outline:login"
+                                                        : activity.type ===
+                                                          "company"
+                                                        ? "heroicons-outline:office-building"
+                                                        : "heroicons-outline:user"
+                                                }
+                                                className={`text-lg ${
+                                                    activity.type === "login"
+                                                        ? "text-success-500"
+                                                        : activity.type ===
+                                                          "company"
+                                                        ? "text-primary-500"
+                                                        : "text-warning-500"
+                                                }`}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h6 className="text-sm font-medium text-slate-900">
+                                                {activity.message}
+                                            </h6>
+                                            <div className="text-xs text-slate-500 mt-1">
+                                                {activity.timestamp}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="text-center py-5">
+                            <Icon
+                                icon="heroicons-outline:clock"
+                                className="text-3xl text-slate-300 mx-auto"
+                            />
+                            <p className="text-sm text-slate-500 mt-2">
+                                No recent activity
+                            </p>
+                        </div>
+                    )}
                 </Card>
 
                 <Card title="Upcoming Plan Expirations">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                            <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-700">
-                                    <th className="px-4 py-3 text-slate-500">
-                                        Company
-                                    </th>
-                                    <th className="px-4 py-3 text-slate-500">
-                                        Plan
-                                    </th>
-                                    <th className="px-4 py-3 text-slate-500">
-                                        Expires
-                                    </th>
-                                    <th className="px-4 py-3 text-slate-500">
-                                        Days Left
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {upcomingExpiries.map((item, index) => (
-                                    <tr
-                                        key={index}
-                                        className="border-b border-slate-100"
-                                    >
-                                        <td className="px-4 py-3">
-                                            <span className="text-primary-500 hover:underline cursor-pointer">
-                                                {item.name}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {item.plan}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {item.expiry_date}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <span
-                                                className={`inline-block rounded-full px-2 py-1 text-xs font-medium
-                                                ${
-                                                    item.days_left < 3
-                                                        ? "bg-danger-500 text-white"
-                                                        : item.days_left < 7
-                                                        ? "bg-warning-500 text-white"
-                                                        : "bg-info-500 text-white"
-                                                }`}
-                                            >
-                                                {item.days_left} days left
-                                            </span>
-                                        </td>
+                    {upcomingExpiries.length > 0 ? (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left">
+                                <thead>
+                                    <tr className="bg-slate-50 dark:bg-slate-700">
+                                        <th className="px-4 py-3 text-slate-500">
+                                            Company
+                                        </th>
+                                        <th className="px-4 py-3 text-slate-500">
+                                            Plan
+                                        </th>
+                                        <th className="px-4 py-3 text-slate-500">
+                                            Expires
+                                        </th>
+                                        <th className="px-4 py-3 text-slate-500">
+                                            Status
+                                        </th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {upcomingExpiries.map((item, index) => (
+                                        <tr
+                                            key={index}
+                                            className="border-b border-slate-100"
+                                        >
+                                            <td className="px-4 py-3">
+                                                <Link
+                                                    to={`/admin/companies/${item.id}`}
+                                                    className="text-primary-500 hover:underline"
+                                                >
+                                                    {item.name}
+                                                </Link>
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {item.plan}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {item.expiry_date}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <span
+                                                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                                                        item.days_left < 7
+                                                            ? "bg-danger-500 text-white"
+                                                            : item.days_left <
+                                                              15
+                                                            ? "bg-warning-500 text-white"
+                                                            : "bg-info-500 text-white"
+                                                    }`}
+                                                >
+                                                    {Math.floor(item.days_left)}{" "}
+                                                    days left
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="text-center py-5">
+                            <Icon
+                                icon="heroicons-outline:check-circle"
+                                className="text-3xl text-success-500 mx-auto"
+                            />
+                            <p className="text-sm text-slate-500 mt-2">
+                                No upcoming expirations
+                            </p>
+                        </div>
+                    )}
                 </Card>
             </div>
 
             {/* Quick Actions */}
             <Card title="Quick Actions">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center cursor-pointer">
-                        <div className="h-10 w-10 mx-auto bg-primary-500/10 text-primary-500 flex items-center justify-center rounded-full mb-3">
-                            <Icon icon="heroicons-outline:plus" />
+                    <Link to="/admin/companies/create" className="block">
+                        <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center">
+                            <div className="h-10 w-10 mx-auto bg-primary-500/10 text-primary-500 flex items-center justify-center rounded-full mb-3">
+                                <Icon icon="heroicons-outline:plus" />
+                            </div>
+                            <h5 className="font-medium text-slate-900">
+                                Add Company
+                            </h5>
+                            <p className="text-xs text-slate-500 mt-1">
+                                Create a new company account
+                            </p>
                         </div>
-                        <h5 className="font-medium text-slate-900">
-                            Add Company
-                        </h5>
-                        <p className="text-xs text-slate-500 mt-1">
-                            Create a new company account
-                        </p>
-                    </div>
+                    </Link>
 
-                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center cursor-pointer">
-                        <div className="h-10 w-10 mx-auto bg-success-500/10 text-success-500 flex items-center justify-center rounded-full mb-3">
-                            <Icon icon="heroicons-outline:office-building" />
+                    <Link to="/admin/companies" className="block">
+                        <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center">
+                            <div className="h-10 w-10 mx-auto bg-success-500/10 text-success-500 flex items-center justify-center rounded-full mb-3">
+                                <Icon icon="heroicons-outline:office-building" />
+                            </div>
+                            <h5 className="font-medium text-slate-900">
+                                Manage Companies
+                            </h5>
+                            <p className="text-xs text-slate-500 mt-1">
+                                View and edit company details
+                            </p>
                         </div>
-                        <h5 className="font-medium text-slate-900">
-                            Manage Companies
-                        </h5>
-                        <p className="text-xs text-slate-500 mt-1">
-                            View and edit company details
-                        </p>
-                    </div>
+                    </Link>
 
-                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center cursor-pointer">
+                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center">
                         <div className="h-10 w-10 mx-auto bg-warning-500/10 text-warning-500 flex items-center justify-center rounded-full mb-3">
                             <Icon icon="heroicons-outline:chart-bar" />
                         </div>
@@ -318,7 +401,7 @@ const AdminDashboard = () => {
                         </p>
                     </div>
 
-                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center cursor-pointer">
+                    <div className="p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition duration-150 text-center">
                         <div className="h-10 w-10 mx-auto bg-info-500/10 text-info-500 flex items-center justify-center rounded-full mb-3">
                             <Icon icon="heroicons-outline:cog" />
                         </div>
