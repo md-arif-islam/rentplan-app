@@ -25,8 +25,6 @@ const CompanyCreate = () => {
         postal_code: "",
         country: "",
         logo: null,
-        admin_email: "",
-        admin_password: "",
         plan: {
             plan_name: "Basic",
             plan_price: 0,
@@ -261,41 +259,6 @@ const CompanyCreate = () => {
                                     },
                                 })
                             }
-                        />
-                    </div>
-                </Card>
-
-                <Card title="Admin Account Information" className="mt-5">
-                    <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
-                        <Textinput
-                            label="Admin Email *"
-                            type="email"
-                            placeholder="Enter admin email"
-                            defaultValue={formData.admin_email}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "admin_email",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
-                            required
-                        />
-                        <Textinput
-                            label="Admin Password *"
-                            type="password"
-                            placeholder="Enter admin password"
-                            defaultValue={formData.admin_password}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "admin_password",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
-                            required
                         />
                     </div>
                 </Card>

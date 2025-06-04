@@ -3,13 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
-use App\Models\Role;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -56,7 +52,7 @@ class CompanyController extends Controller
         DB::beginTransaction();
 
         try {
-            // Validate company data
+            // Validate company data (removed admin user fields)
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:companies,email|max:255',
@@ -69,8 +65,6 @@ class CompanyController extends Controller
                 'state' => 'nullable|string|max:255',
                 'postal_code' => 'nullable|string|max:20',
                 'country' => 'nullable|string|max:255',
-                'admin_email' => 'required|email|unique:users,email',
-                'admin_password' => 'required|min:8',
             ]);
 
             if ($validator->fails()) {
@@ -80,7 +74,7 @@ class CompanyController extends Controller
                 ], 422);
             }
 
-            $companyData = $request->except(['logo', 'admin_email', 'admin_password']);
+            $companyData = $request->except(['logo']);
 
             // Handle logo upload if provided as base64
             if ($request->has('logo') && $request->logo) {
@@ -105,20 +99,6 @@ class CompanyController extends Controller
 
             // Create company
             $company = Company::create($companyData);
-
-            // Create company admin user
-            $companyAdminRole = Role::where('name', 'company_admin')->where('scope', 'company')->first();
-
-            if (!$companyAdminRole) {
-                throw new \Exception('Company admin role not found');
-            }
-
-            $user = User::create([
-                'email' => $request->input('admin_email'),
-                'password' => Hash::make($request->input('admin_password')),
-                'company_id' => $company->id,
-                'role_id' => $companyAdminRole->id,
-            ]);
 
             DB::commit();
 
