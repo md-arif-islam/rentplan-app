@@ -1,12 +1,13 @@
+import LoadingContent from "@/components/Loading";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-import Textinput from "@/components/ui/Textinput";
 import Select from "@/components/ui/Select";
-import { 
-    useGetOrderQuery, 
-    useUpdateOrderMutation 
-} from "@/store/api/orders/ordersApiSlice";
+import Textinput from "@/components/ui/Textinput";
 import { useGetCustomersQuery } from "@/store/api/customers/customersApiSlice";
+import {
+    useGetOrderQuery,
+    useUpdateOrderMutation,
+} from "@/store/api/orders/ordersApiSlice";
 import { useGetProductsQuery } from "@/store/api/products/productsApiSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useEffect, useState } from "react";
@@ -14,7 +15,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as yup from "yup";
-import LoadingContent from "@/components/Loading";
 
 const schema = yup.object().shape({
     customer_id: yup.number().required("Customer is required"),
@@ -35,39 +35,43 @@ const schema = yup.object().shape({
     delivery_house_number: yup.string().nullable(),
     delivery_city: yup.string().nullable(),
     delivery_country: yup.string().nullable(),
-    woocommerce_order_id: yup.number().nullable().transform(value => 
-        isNaN(value) || value === "" ? null : Number(value)
-    ),
+    woocommerce_order_id: yup
+        .number()
+        .nullable()
+        .transform((value) =>
+            isNaN(value) || value === "" ? null : Number(value)
+        ),
 });
 
 const OrderEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    
-    const { data: order, isLoading: isLoadingOrder, isError, error } = useGetOrderQuery(id);
+
+    const {
+        data: order,
+        isLoading: isLoadingOrder,
+        isError,
+        error,
+    } = useGetOrderQuery(id);
     const [updateOrder, { isLoading: isUpdating }] = useUpdateOrderMutation();
-    
+
     const [customerSearch, setCustomerSearch] = useState("");
     const [productSearch, setProductSearch] = useState("");
     const [useDeliveryAddress, setUseDeliveryAddress] = useState(false);
 
     // Fetch customers for dropdown
-    const {
-        data: customers,
-        isLoading: isLoadingCustomers,
-    } = useGetCustomersQuery({
-        search: customerSearch,
-        perPage: 100
-    });
+    const { data: customers, isLoading: isLoadingCustomers } =
+        useGetCustomersQuery({
+            search: customerSearch,
+            perPage: 100,
+        });
 
     // Fetch products for dropdown
-    const {
-        data: products,
-        isLoading: isLoadingProducts,
-    } = useGetProductsQuery({
-        search: productSearch,
-        perPage: 100
-    });
+    const { data: products, isLoading: isLoadingProducts } =
+        useGetProductsQuery({
+            search: productSearch,
+            perPage: 100,
+        });
 
     const {
         register,
@@ -105,8 +109,12 @@ const OrderEdit = () => {
             reset({
                 customer_id: order.customer_id,
                 product_id: order.product_id,
-                start_date: order.start_date ? new Date(order.start_date).toISOString().split('T')[0] : "",
-                end_date: order.end_date ? new Date(order.end_date).toISOString().split('T')[0] : "",
+                start_date: order.start_date
+                    ? new Date(order.start_date).toISOString().split("T")[0]
+                    : "",
+                end_date: order.end_date
+                    ? new Date(order.end_date).toISOString().split("T")[0]
+                    : "",
                 order_status: order.order_status || "pending",
                 invoice_street: order.invoice_street || "",
                 invoice_postal_code: order.invoice_postal_code || "",
@@ -120,15 +128,15 @@ const OrderEdit = () => {
                 delivery_country: order.delivery_country || "",
                 woocommerce_order_id: order.woocommerce_order_id || "",
             });
-            
+
             // Check if delivery address is the same as invoice address
-            const sameAddress = 
+            const sameAddress =
                 order.invoice_street === order.delivery_street &&
                 order.invoice_postal_code === order.delivery_postal_code &&
                 order.invoice_house_number === order.delivery_house_number &&
                 order.invoice_city === order.delivery_city &&
                 order.invoice_country === order.delivery_country;
-                
+
             setUseDeliveryAddress(sameAddress);
         }
     }, [order, reset]);
@@ -156,7 +164,7 @@ const OrderEdit = () => {
         invoiceHouseNumber,
         invoiceCity,
         invoiceCountry,
-        setValue
+        setValue,
     ]);
 
     const statusOptions = [
@@ -170,7 +178,7 @@ const OrderEdit = () => {
         try {
             await updateOrder({
                 id,
-                ...data
+                ...data,
             }).unwrap();
             toast.success("Order updated successfully");
             navigate("/company/orders");
@@ -178,9 +186,11 @@ const OrderEdit = () => {
             console.error("Update failed", error);
 
             if (error?.data?.errors) {
-                Object.entries(error.data.errors).forEach(([field, messages]) => {
-                    toast.error(`${field}: ${messages[0]}`);
-                });
+                Object.entries(error.data.errors).forEach(
+                    ([field, messages]) => {
+                        toast.error(`${field}: ${messages[0]}`);
+                    }
+                );
             } else {
                 toast.error(error?.data?.message || "Failed to update order");
             }
@@ -214,15 +224,19 @@ const OrderEdit = () => {
     }
 
     // Convert customers and products arrays to select options
-    const customerOptions = customers?.data?.map(customer => ({
-        value: customer.id,
-        label: `${customer.first_name} ${customer.last_name} (${customer.email || 'No email'})`
-    })) || [];
+    const customerOptions =
+        customers?.data?.map((customer) => ({
+            value: customer.id,
+            label: `${customer.first_name} ${customer.last_name} (${
+                customer.email || "No email"
+            })`,
+        })) || [];
 
-    const productOptions = products?.data?.map(product => ({
-        value: product.id,
-        label: `${product.name}`
-    })) || [];
+    const productOptions =
+        products?.data?.map((product) => ({
+            value: product.id,
+            label: `${product.name}`,
+        })) || [];
 
     return (
         <div className="space-y-5">
@@ -255,24 +269,34 @@ const OrderEdit = () => {
                             <Select
                                 options={customerOptions}
                                 value={watch("customer_id")}
-                                onChange={(e) => setValue("customer_id", Number(e.target.value))}
+                                onChange={(e) =>
+                                    setValue(
+                                        "customer_id",
+                                        Number(e.target.value)
+                                    )
+                                }
                                 error={errors.customer_id}
                                 noOptionsMessage={() => "No customers found"}
                             />
                         </div>
-                        
+
                         {/* Product Selection */}
                         <div>
                             <label className="form-label">Product *</label>
                             <Select
                                 options={productOptions}
                                 value={watch("product_id")}
-                                onChange={(e) => setValue("product_id", Number(e.target.value))}
+                                onChange={(e) =>
+                                    setValue(
+                                        "product_id",
+                                        Number(e.target.value)
+                                    )
+                                }
                                 error={errors.product_id}
                                 noOptionsMessage={() => "No products found"}
                             />
                         </div>
-                        
+
                         {/* Start & End Dates */}
                         <Textinput
                             label="Start Date *"
@@ -288,18 +312,20 @@ const OrderEdit = () => {
                             name="end_date"
                             error={errors.end_date}
                         />
-                        
+
                         {/* Order Status */}
                         <div>
                             <label className="form-label">Status *</label>
                             <Select
                                 options={statusOptions}
                                 value={watch("order_status")}
-                                onChange={(e) => setValue("order_status", e.target.value)}
+                                onChange={(e) =>
+                                    setValue("order_status", e.target.value)
+                                }
                                 error={errors.order_status}
                             />
                         </div>
-                        
+
                         {/* WooCommerce ID */}
                         <Textinput
                             label="WooCommerce Order ID (Optional)"
@@ -353,14 +379,16 @@ const OrderEdit = () => {
                                 type="checkbox"
                                 className="form-checkbox rounded text-primary-500 border-slate-300"
                                 checked={useDeliveryAddress}
-                                onChange={() => setUseDeliveryAddress(!useDeliveryAddress)}
+                                onChange={() =>
+                                    setUseDeliveryAddress(!useDeliveryAddress)
+                                }
                             />
                             <span className="text-slate-500 dark:text-slate-400 text-sm ml-2">
                                 Same as invoice address
                             </span>
                         </label>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <Textinput
                             label="Street"

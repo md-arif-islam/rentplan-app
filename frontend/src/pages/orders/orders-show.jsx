@@ -1,8 +1,8 @@
 import LoadingContent from "@/components/Loading";
+import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
-import Badge from "@/components/ui/Badge";
 import { useGetOrderQuery } from "@/store/api/orders/ordersApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -15,27 +15,27 @@ const OrderShow = () => {
     // Format date helper
     const formatDate = (dateString) => {
         if (!dateString) return "—";
-        
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
+
+        return new Date(dateString).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
         });
     };
 
     // Get status badge color
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
-            case 'completed':
-                return 'bg-success-500';
-            case 'processing':
-                return 'bg-info-500';
-            case 'pending':
-                return 'bg-warning-500';
-            case 'cancelled':
-                return 'bg-danger-500';
+            case "completed":
+                return "bg-success-500";
+            case "processing":
+                return "bg-info-500";
+            case "pending":
+                return "bg-warning-500";
+            case "cancelled":
+                return "bg-danger-500";
             default:
-                return 'bg-slate-500';
+                return "bg-slate-500";
         }
     };
 
@@ -99,7 +99,9 @@ const OrderShow = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                         <div>
-                            <h5 className="text-sm text-slate-400 font-medium mb-1">Order Status</h5>
+                            <h5 className="text-sm text-slate-400 font-medium mb-1">
+                                Order Status
+                            </h5>
                             <Badge
                                 label={order.order_status || "Unknown"}
                                 className={getStatusColor(order.order_status)}
@@ -107,9 +109,12 @@ const OrderShow = () => {
                         </div>
 
                         <div>
-                            <h5 className="text-sm text-slate-400 font-medium mb-1">Customer</h5>
+                            <h5 className="text-sm text-slate-400 font-medium mb-1">
+                                Customer
+                            </h5>
                             <p className="text-base text-slate-900 dark:text-white">
-                                {order.customer?.first_name} {order.customer?.last_name}
+                                {order.customer?.first_name}{" "}
+                                {order.customer?.last_name}
                             </p>
                             <p className="text-sm text-slate-500">
                                 {order.customer?.email || "No email"}
@@ -120,7 +125,9 @@ const OrderShow = () => {
                         </div>
 
                         <div>
-                            <h5 className="text-sm text-slate-400 font-medium mb-1">Product</h5>
+                            <h5 className="text-sm text-slate-400 font-medium mb-1">
+                                Product
+                            </h5>
                             <p className="text-base text-slate-900 dark:text-white">
                                 {order.product?.name || "N/A"}
                             </p>
@@ -129,16 +136,22 @@ const OrderShow = () => {
 
                     <div className="space-y-4">
                         <div>
-                            <h5 className="text-sm text-slate-400 font-medium mb-1">Order Dates</h5>
+                            <h5 className="text-sm text-slate-400 font-medium mb-1">
+                                Order Dates
+                            </h5>
                             <div className="flex gap-2">
                                 <div className="flex-1">
-                                    <p className="text-xs text-slate-500 mb-1">Start Date</p>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        Start Date
+                                    </p>
                                     <p className="text-base text-slate-900 dark:text-white">
                                         {formatDate(order.start_date)}
                                     </p>
                                 </div>
                                 <div className="flex-1">
-                                    <p className="text-xs text-slate-500 mb-1">End Date</p>
+                                    <p className="text-xs text-slate-500 mb-1">
+                                        End Date
+                                    </p>
                                     <p className="text-base text-slate-900 dark:text-white">
                                         {formatDate(order.end_date)}
                                     </p>
@@ -147,13 +160,16 @@ const OrderShow = () => {
                         </div>
 
                         <div>
-                            <h5 className="text-sm text-slate-400 font-medium mb-1">Order Details</h5>
+                            <h5 className="text-sm text-slate-400 font-medium mb-1">
+                                Order Details
+                            </h5>
                             <p className="text-sm text-slate-500">
                                 Order created on {formatDate(order.created_at)}
                             </p>
                             {order.woocommerce_order_id && (
                                 <p className="text-sm text-slate-500">
-                                    WooCommerce Order ID: {order.woocommerce_order_id}
+                                    WooCommerce Order ID:{" "}
+                                    {order.woocommerce_order_id}
                                 </p>
                             )}
                         </div>
@@ -166,29 +182,41 @@ const OrderShow = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Invoice Address */}
                     <div>
-                        <h5 className="text-base font-medium mb-3">Invoice Address</h5>
+                        <h5 className="text-base font-medium mb-3">
+                            Invoice Address
+                        </h5>
                         <div className="space-y-1">
                             <p className="text-sm">
-                                {order.invoice_street || "Not specified"} {order.invoice_house_number || ""}
+                                {order.invoice_street || "Not specified"}{" "}
+                                {order.invoice_house_number || ""}
                             </p>
                             <p className="text-sm">
-                                {order.invoice_postal_code || ""} {order.invoice_city || ""}
+                                {order.invoice_postal_code || ""}{" "}
+                                {order.invoice_city || ""}
                             </p>
-                            <p className="text-sm">{order.invoice_country || ""}</p>
+                            <p className="text-sm">
+                                {order.invoice_country || ""}
+                            </p>
                         </div>
                     </div>
-                    
+
                     {/* Delivery Address */}
                     <div>
-                        <h5 className="text-base font-medium mb-3">Delivery Address</h5>
+                        <h5 className="text-base font-medium mb-3">
+                            Delivery Address
+                        </h5>
                         <div className="space-y-1">
                             <p className="text-sm">
-                                {order.delivery_street || "Not specified"} {order.delivery_house_number || ""}
+                                {order.delivery_street || "Not specified"}{" "}
+                                {order.delivery_house_number || ""}
                             </p>
                             <p className="text-sm">
-                                {order.delivery_postal_code || ""} {order.delivery_city || ""}
+                                {order.delivery_postal_code || ""}{" "}
+                                {order.delivery_city || ""}
                             </p>
-                            <p className="text-sm">{order.delivery_country || ""}</p>
+                            <p className="text-sm">
+                                {order.delivery_country || ""}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -202,7 +230,9 @@ const OrderShow = () => {
                             <div className="h-16 w-16 rounded overflow-hidden flex-shrink-0">
                                 {order.product.image_url ? (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL}/${order.product.image_url}`}
+                                        src={`${import.meta.env.VITE_API_URL}/${
+                                            order.product.image_url
+                                        }`}
                                         alt={order.product.name}
                                         className="w-full h-full object-cover"
                                     />
@@ -213,9 +243,13 @@ const OrderShow = () => {
                                 )}
                             </div>
                             <div>
-                                <h5 className="text-base font-medium">{order.product.name}</h5>
+                                <h5 className="text-base font-medium">
+                                    {order.product.name}
+                                </h5>
                                 <p className="text-sm text-slate-500">
-                                    {order.product.type === 0 ? "Simple Product" : "Variable Product"}
+                                    {order.product.type === 0
+                                        ? "Simple Product"
+                                        : "Variable Product"}
                                 </p>
                             </div>
                         </div>
@@ -231,7 +265,9 @@ const OrderShow = () => {
                     </div>
                 ) : (
                     <div className="text-center py-4">
-                        <p className="text-slate-500">No product information available</p>
+                        <p className="text-slate-500">
+                            No product information available
+                        </p>
                     </div>
                 )}
             </Card>

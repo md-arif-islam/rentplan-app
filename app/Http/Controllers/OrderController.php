@@ -18,16 +18,16 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         $search = $request->input('search');
         $perPage = $request->input('perPage', 10);
         $status = $request->input('status');
-        
+
         // Query orders through customers that belong to the company
         $query = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->with(['customer', 'product']);
-        
+
         // Apply search filter if provided
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -36,22 +36,22 @@ class OrderController extends Controller
                         ->orWhere('last_name', 'like', "%{$search}%")
                         ->orWhere('email', 'like', "%{$search}%");
                 })
-                ->orWhereHas('product', function ($productQuery) use ($search) {
-                    $productQuery->where('name', 'like', "%{$search}%");
-                })
-                ->orWhere('woocommerce_order_id', 'like', "%{$search}%")
-                ->orWhere('invoice_city', 'like', "%{$search}%")
-                ->orWhere('delivery_city', 'like', "%{$search}%");
+                    ->orWhereHas('product', function ($productQuery) use ($search) {
+                        $productQuery->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhere('woocommerce_order_id', 'like', "%{$search}%")
+                    ->orWhere('invoice_city', 'like', "%{$search}%")
+                    ->orWhere('delivery_city', 'like', "%{$search}%");
             });
         }
-        
+
         // Filter by status if provided
         if ($status) {
             $query->where('order_status', $status);
         }
-        
+
         $orders = $query->orderBy('created_at', 'desc')->paginate($perPage);
-        
+
         return response()->json($orders);
     }
 
@@ -62,10 +62,10 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         // Start a database transaction
         DB::beginTransaction();
-        
+
         try {
             // Validate order data
             $validator = Validator::make($request->all(), [
@@ -86,14 +86,14 @@ class OrderController extends Controller
                 'delivery_city' => 'nullable|string|max:100',
                 'delivery_country' => 'nullable|string|max:100',
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json([
                     'message' => 'Validation failed',
                     'errors' => $validator->errors(),
                 ], 422);
             }
-            
+
             // Verify the customer belongs to the company
             $customer = Customer::find($request->customer_id);
             if (!$customer || $customer->company_id !== $companyId) {
@@ -101,7 +101,7 @@ class OrderController extends Controller
                     'message' => 'Customer not found or does not belong to your company',
                 ], 404);
             }
-            
+
             // Verify the product belongs to the company
             $product = Product::find($request->product_id);
             if (!$product || $product->company_id !== $companyId) {
@@ -109,28 +109,27 @@ class OrderController extends Controller
                     'message' => 'Product not found or does not belong to your company',
                 ], 404);
             }
-            
+
             // Create the order
             $orderData = $request->all();
             if (!isset($orderData['order_status'])) {
                 $orderData['order_status'] = 'pending';
             }
-            
+
             $order = Order::create($orderData);
-            
+
             DB::commit();
-            
+
             // Load relationships
             $order->load(['customer', 'product']);
-            
+
             return response()->json([
                 'message' => 'Order created successfully',
                 'data' => $order,
             ], 201);
-            
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to create order',
                 'error' => $e->getMessage(),
@@ -145,13 +144,13 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         $order = Order::with(['customer', 'product'])
             ->whereHas('customer', function ($q) use ($companyId) {
                 $q->where('company_id', $companyId);
             })
             ->findOrFail($id);
-        
+
         return response()->json($order);
     }
 
@@ -162,15 +161,15 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         // Find the order and ensure it belongs to the company
         $order = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->findOrFail($id);
-        
+
         // Start a database transaction
         DB::beginTransaction();
-        
+
         try {
             // Validate order data
             $validator = Validator::make($request->all(), [
@@ -191,14 +190,14 @@ class OrderController extends Controller
                 'delivery_city' => 'nullable|string|max:100',
                 'delivery_country' => 'nullable|string|max:100',
             ]);
-            
+
             if ($validator->fails()) {
                 return response()->json([
                     'message' => 'Validation failed',
                     'errors' => $validator->errors(),
                 ], 422);
             }
-            
+
             // If customer_id is being changed, verify the new customer belongs to the company
             if ($request->has('customer_id') && $request->customer_id !== $order->customer_id) {
                 $customer = Customer::find($request->customer_id);
@@ -208,7 +207,7 @@ class OrderController extends Controller
                     ], 404);
                 }
             }
-            
+
             // If product_id is being changed, verify the new product belongs to the company
             if ($request->has('product_id') && $request->product_id !== $order->product_id) {
                 $product = Product::find($request->product_id);
@@ -218,23 +217,22 @@ class OrderController extends Controller
                     ], 404);
                 }
             }
-            
+
             // Update the order
             $order->update($request->all());
-            
+
             DB::commit();
-            
+
             // Load relationships
             $order->load(['customer', 'product']);
-            
+
             return response()->json([
                 'message' => 'Order updated successfully',
                 'data' => $order,
             ]);
-            
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'message' => 'Failed to update order',
                 'error' => $e->getMessage(),
@@ -249,15 +247,15 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         // Find the order and ensure it belongs to the company
         $order = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->findOrFail($id);
-        
+
         try {
             $order->delete();
-            
+
             return response()->json([
                 'message' => 'Order deleted successfully',
             ]);

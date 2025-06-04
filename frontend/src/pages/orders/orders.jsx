@@ -1,10 +1,10 @@
 import SkeletionTable from "@/components/skeleton/Table";
+import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import Modal from "@/components/ui/Modal";
 import Tooltip from "@/components/ui/Tooltip";
-import Badge from "@/components/ui/Badge";
 import {
     useDeleteOrderMutation,
     useGetOrdersQuery,
@@ -26,7 +26,7 @@ function Orders({ title = "Orders" }) {
         search: "",
         status: "",
     });
-    
+
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -38,8 +38,7 @@ function Orders({ title = "Orders" }) {
         error,
     } = useGetOrdersQuery(pagination);
 
-    const [deleteOrder, { isLoading: isDeleting }] =
-        useDeleteOrderMutation();
+    const [deleteOrder, { isLoading: isDeleting }] = useDeleteOrderMutation();
 
     const handleSearch = (value) => {
         setSearchValue(value);
@@ -78,27 +77,27 @@ function Orders({ title = "Orders" }) {
     // Format date helper
     const formatDate = (dateString) => {
         if (!dateString) return "—";
-        
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
+
+        return new Date(dateString).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
         });
     };
 
     // Get status badge color
     const getStatusColor = (status) => {
         switch (status?.toLowerCase()) {
-            case 'completed':
-                return 'bg-success-500';
-            case 'processing':
-                return 'bg-info-500';
-            case 'pending':
-                return 'bg-warning-500';
-            case 'cancelled':
-                return 'bg-danger-500';
+            case "completed":
+                return "bg-success-500";
+            case "processing":
+                return "bg-info-500";
+            case "pending":
+                return "bg-warning-500";
+            case "cancelled":
+                return "bg-danger-500";
             default:
-                return 'bg-slate-500';
+                return "bg-slate-500";
         }
     };
 
@@ -107,7 +106,10 @@ function Orders({ title = "Orders" }) {
         () => [
             {
                 Header: "Customer",
-                accessor: (row) => `${row.customer?.first_name || ''} ${row.customer?.last_name || ''}`,
+                accessor: (row) =>
+                    `${row.customer?.first_name || ""} ${
+                        row.customer?.last_name || ""
+                    }`,
                 Cell: ({ cell: { value }, row }) => (
                     <div className="flex items-center">
                         <span>{value.trim() || "—"}</span>
@@ -268,8 +270,8 @@ function Orders({ title = "Orders" }) {
                 <div className="text-base text-slate-600 dark:text-slate-300">
                     {selectedOrder ? (
                         <>
-                            Are you sure you want to delete this order? This action
-                            cannot be undone.
+                            Are you sure you want to delete this order? This
+                            action cannot be undone.
                         </>
                     ) : (
                         "Are you sure you want to delete this order? This action cannot be undone."
@@ -437,8 +439,8 @@ function Orders({ title = "Orders" }) {
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                         Page{" "}
                                         <span>
-                                            {orders ? orders.current_page : 0} of{" "}
-                                            {orders ? orders.last_page : 0}
+                                            {orders ? orders.current_page : 0}{" "}
+                                            of {orders ? orders.last_page : 0}
                                         </span>
                                     </span>
                                 </div>
