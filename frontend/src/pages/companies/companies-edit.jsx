@@ -8,9 +8,73 @@ import {
     useGetCompanyQuery,
     useUpdateCompanyMutation,
 } from "@/store/api/companies/companiesApiSlice";
-import { useEffect, useRef, useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useEffect, useRef } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import * as yup from "yup";
+
+const schema = yup.object().shape({
+    name: yup
+        .string()
+        .required("Company name is required")
+        .max(255, "Company name cannot exceed 255 characters"),
+    email: yup
+        .string()
+        .required("Email is required")
+        .email("Please enter a valid email address")
+        .max(255, "Email cannot exceed 255 characters"),
+    phone: yup.string().max(20, "Phone cannot exceed 20 characters"),
+    website: yup
+        .string()
+        .url("Please enter a valid URL")
+        .max(255, "Website URL cannot exceed 255 characters")
+        .nullable(),
+    address_line_1: yup
+        .string()
+        .max(255, "Address cannot exceed 255 characters")
+        .nullable(),
+    address_line_2: yup
+        .string()
+        .max(255, "Address cannot exceed 255 characters")
+        .nullable(),
+    city: yup.string().max(255, "City cannot exceed 255 characters").nullable(),
+    state: yup
+        .string()
+        .max(255, "State cannot exceed 255 characters")
+        .nullable(),
+    postal_code: yup
+        .string()
+        .max(20, "Postal code cannot exceed 20 characters")
+        .nullable(),
+    country: yup
+        .string()
+        .max(255, "Country cannot exceed 255 characters")
+        .nullable(),
+    plan: yup.object().shape({
+        plan_name: yup.string().required("Plan name is required"),
+        plan_price: yup
+            .number()
+            .required("Plan price is required")
+            .min(0, "Price cannot be negative"),
+        plan_status: yup
+            .string()
+            .required("Plan status is required")
+            .oneOf(
+                ["active", "inactive", "trial", "expired"],
+                "Invalid plan status"
+            ),
+        plan_start_date: yup.date().required("Start date is required"),
+        plan_expiry_date: yup
+            .date()
+            .required("Expiry date is required")
+            .min(
+                yup.ref("plan_start_date"),
+                "Expiry date must be after start date"
+            ),
+    }),
+});
 
 const CompanyEdit = () => {
     const { id } = useParams();
@@ -21,34 +85,23 @@ const CompanyEdit = () => {
 
     const { data: company, isLoading, isError, error } = useGetCompanyQuery(id);
 
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        phone: "",
-        website: "",
-        address_line_1: "",
-        address_line_2: "",
-        city: "",
-        state: "",
-        postal_code: "",
-        country: "",
-        logo: null,
-        plan: {
-            plan_name: "Basic",
-            plan_price: 0,
-            plan_status: "active",
-            plan_features: ["basic_features"],
-            plan_start_date: new Date().toISOString().split("T")[0],
-            plan_expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0],
-        },
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        setError,
+        setValue,
+        watch,
+        reset,
+    } = useForm({
+        resolver: yupResolver(schema),
+        mode: "onChange",
     });
 
     // Initialize form with company data when available
     useEffect(() => {
         if (company) {
-            setFormData({
+            reset({
                 name: company.name || "",
                 email: company.email || "",
                 phone: company.phone || "",
@@ -74,30 +127,14 @@ const CompanyEdit = () => {
                 },
             });
         }
-    }, [company]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handlePlanChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            plan: {
-                ...formData.plan,
-                [name]: value,
-            },
-        });
-    };
+    }, [company, reset]);
 
     const handleFileChange = async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setFormData({ ...formData, logo: reader.result });
+                setValue("logo", reader.result);
             };
             reader.readAsDataURL(file);
         }
@@ -107,30 +144,35 @@ const CompanyEdit = () => {
         fileInputRef.current.click();
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const onSubmit = async (formData) => {
         try {
             await updateCompany({ id, ...formData }).unwrap();
             toast.success("Company updated successfully");
             navigate("/admin/companies");
         } catch (error) {
-            console.error("Error updating company:", error);
-            toast.error(error?.data?.message || "Failed to update company");
+            console.error("Update failed", error);
 
-            // Display validation errors
             if (error?.data?.errors) {
-                Object.keys(error.data.errors).forEach((field) => {
-                    toast.error(`${field}: ${error.data.errors[field][0]}`);
-                });
+                Object.entries(error.data.errors).forEach(
+                    ([field, messages]) => {
+                        setError(field, {
+                            type: "manual",
+                            message: messages[0],
+                        });
+                    }
+                );
+            } else {
+                toast.error(error?.data?.message || "Failed to update company");
             }
         }
     };
 
     // Determine logo preview source
-    const logoPreview = formData.logo
-        ? formData.logo.startsWith("data:")
-            ? formData.logo
-            : `${import.meta.env.VITE_API_URL}/${formData.logo}`
+    const logoValue = watch("logo");
+    const logoPreview = logoValue
+        ? logoValue.startsWith("data:")
+            ? logoValue
+            : `${import.meta.env.VITE_API_URL}/${logoValue}`
         : null;
 
     const planStatusOptions = [
@@ -192,66 +234,40 @@ const CompanyEdit = () => {
                 </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit(onSubmit)}>
                 <Card title="Company Information">
                     <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
                         <Textinput
                             label="Company Name *"
                             type="text"
                             placeholder="Enter company name"
-                            defaultValue={formData.name}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "name",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
-                            required
+                            register={register}
+                            name="name"
+                            error={errors.name}
                         />
                         <Textinput
                             label="Email *"
                             type="email"
                             placeholder="Enter company email"
-                            defaultValue={formData.email}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "email",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
-                            required
+                            register={register}
+                            name="email"
+                            error={errors.email}
                         />
                         <Textinput
                             label="Phone"
                             type="text"
                             placeholder="Enter phone number"
-                            defaultValue={formData.phone}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "phone",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="phone"
+                            error={errors.phone}
                         />
                         <Textinput
                             label="Website"
                             type="url"
                             placeholder="Enter website URL"
-                            defaultValue={formData.website}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "website",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="website"
+                            error={errors.website}
                         />
                     </div>
                 </Card>
@@ -262,85 +278,49 @@ const CompanyEdit = () => {
                             label="Address Line 1"
                             type="text"
                             placeholder="Enter address line 1"
-                            defaultValue={formData.address_line_1}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "address_line_1",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="address_line_1"
+                            error={errors.address_line_1}
                         />
                         <Textinput
                             label="Address Line 2"
                             type="text"
                             placeholder="Enter address line 2"
-                            defaultValue={formData.address_line_2}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "address_line_2",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="address_line_2"
+                            error={errors.address_line_2}
                         />
                         <Textinput
                             label="City"
                             type="text"
                             placeholder="Enter city"
-                            defaultValue={formData.city}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "city",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="city"
+                            error={errors.city}
                         />
                         <Textinput
                             label="State/Province"
                             type="text"
                             placeholder="Enter state or province"
-                            defaultValue={formData.state}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "state",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="state"
+                            error={errors.state}
                         />
                         <Textinput
                             label="Postal Code"
                             type="text"
                             placeholder="Enter postal code"
-                            defaultValue={formData.postal_code}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "postal_code",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="postal_code"
+                            error={errors.postal_code}
                         />
                         <Textinput
                             label="Country"
                             type="text"
                             placeholder="Enter country"
-                            defaultValue={formData.country}
-                            onChange={(e) =>
-                                handleChange({
-                                    target: {
-                                        name: "country",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="country"
+                            error={errors.country}
                         />
                     </div>
                 </Card>
@@ -390,70 +370,42 @@ const CompanyEdit = () => {
                             label="Plan Name"
                             type="text"
                             placeholder="Enter plan name"
-                            defaultValue={formData.plan?.plan_name}
-                            onChange={(e) =>
-                                handlePlanChange({
-                                    target: {
-                                        name: "plan_name",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="plan.plan_name"
+                            error={errors.plan?.plan_name}
                         />
                         <Textinput
                             label="Price"
                             type="number"
                             placeholder="Enter price"
-                            defaultValue={formData.plan?.plan_price}
+                            register={register}
+                            name="plan.plan_price"
                             step="0.01"
                             min="0"
-                            onChange={(e) =>
-                                handlePlanChange({
-                                    target: {
-                                        name: "plan_price",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            error={errors.plan?.plan_price}
                         />
                         <Select
                             label="Status"
                             options={planStatusOptions}
-                            value={formData.plan?.plan_status || "active"}
+                            value={watch("plan.plan_status")}
                             onChange={(e) =>
-                                handlePlanChange({
-                                    target: {
-                                        name: "plan_status",
-                                        value: e.target.value,
-                                    },
-                                })
+                                setValue("plan.plan_status", e.target.value)
                             }
+                            error={errors.plan?.plan_status}
                         />
                         <Textinput
                             label="Start Date"
                             type="date"
-                            defaultValue={formData.plan?.plan_start_date}
-                            onChange={(e) =>
-                                handlePlanChange({
-                                    target: {
-                                        name: "plan_start_date",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="plan.plan_start_date"
+                            error={errors.plan?.plan_start_date}
                         />
                         <Textinput
                             label="Expiry Date"
                             type="date"
-                            defaultValue={formData.plan?.plan_expiry_date}
-                            onChange={(e) =>
-                                handlePlanChange({
-                                    target: {
-                                        name: "plan_expiry_date",
-                                        value: e.target.value,
-                                    },
-                                })
-                            }
+                            register={register}
+                            name="plan.plan_expiry_date"
+                            error={errors.plan?.plan_expiry_date}
                         />
                     </div>
                 </Card>
@@ -471,7 +423,8 @@ const CompanyEdit = () => {
                         icon="heroicons-outline:save"
                         text="Update Company"
                         className="btn-dark"
-                        isLoading={isUpdating}
+                        isLoading={isUpdating || isSubmitting}
+                        disabled={isUpdating || isSubmitting}
                     />
                 </div>
             </form>
