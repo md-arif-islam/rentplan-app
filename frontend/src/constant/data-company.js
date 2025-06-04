@@ -9,6 +9,12 @@ export const menuItems = [
         icon: "heroicons-outline:home",
         link: "dashboard",
     },
+
+    {
+        title: "Users",
+        icon: "heroicons-outline:users",
+        link: "users",
+    },
 ];
 
 export const colors = {

@@ -72,4 +72,18 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    /**
+     * Save related profile data
+     */
+    public function saveProfile($profileData)
+    {
+        // If no profile exists yet, create one
+        if (!$this->userProfile) {
+            return $this->userProfile()->create($profileData);
+        }
+
+        // Update existing profile
+        return $this->userProfile->update($profileData);
+    }
 }

@@ -19,6 +19,11 @@ const CompaniesCreate = lazy(() =>
 );
 const CompaniesEdit = lazy(() => import("./pages/companies/companies-edit"));
 
+const Users = lazy(() => import("./pages/users/users"));
+const UsersShow = lazy(() => import("./pages/users/users-show"));
+const UsersCreate = lazy(() => import("./pages/users/users-create"));
+const UsersEdit = lazy(() => import("./pages/users/users-edit"));
+
 const Error = lazy(() => import("./pages/404"));
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -111,6 +116,13 @@ function App() {
                     <Route path="dashboard" element={<CompanyDashboard />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="profile/:id/edit" element={<ProfileEdit />} />
+
+                    {/* Add user management routes */}
+                    <Route path="users" element={<Users />} />
+                    <Route path="users/create" element={<UsersCreate />} />
+                    <Route path="users/:id" element={<UsersShow />} />
+                    <Route path="users/:id/edit" element={<UsersEdit />} />
+
                     <Route path="*" element={<Navigate to="/404" />} />
                 </Route>
 

@@ -5,6 +5,7 @@ import customers from "./api/companies/companiesSlice";
 import countries from "./api/countries/countriesSlice";
 import holdersTaxes from "./api/holdersTaxes/holdersTaxesSlice";
 import profile from "./api/profile/profileSlice";
+import users from "./api/users/usersSlice";
 import layout from "./layout";
 
 const rootReducer = {
@@ -16,6 +17,7 @@ const rootReducer = {
     breeders,
     customers,
     profile,
+    users,
 };
 
 export default rootReducer;

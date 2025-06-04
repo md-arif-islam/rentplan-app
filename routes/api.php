@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CompanyUserController;
 use App\Http\Middleware\CompanyAdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +43,14 @@ Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::cl
     Route::get('/dashboard', [DashboardController::class, 'companyDashboard']);
     Route::get('/profile/{id}', [UserProfileController::class, 'show']);
     Route::put('/profile/{id}', [UserProfileController::class, 'update']);
+
+    // Company user management routes
+    Route::get('/users', [CompanyUserController::class, 'index']);
+    Route::post('/users', [CompanyUserController::class, 'store']);
+    Route::get('/users/{id}', [CompanyUserController::class, 'show']);
+    Route::put('/users/{id}', [CompanyUserController::class, 'update']);
+    Route::delete('/users/{id}', [CompanyUserController::class, 'destroy']);
+    Route::get('/roles', [CompanyUserController::class, 'getRoles']);
 
     // Add more company-specific routes here
 });

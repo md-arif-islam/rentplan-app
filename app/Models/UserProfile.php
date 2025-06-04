@@ -20,6 +20,22 @@ class UserProfile extends Model
         'user_id' => 'integer',
     ];
 
+    /**
+     * Create a new profile or update if exists
+     */
+    public static function createOrUpdateProfile($userId, $data)
+    {
+        $profile = self::where('user_id', $userId)->first();
+
+        if (!$profile) {
+            $data['user_id'] = $userId;
+            return self::create($data);
+        }
+
+        $profile->update($data);
+        return $profile;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
