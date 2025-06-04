@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
 import Icon from "@/components/ui/Icon";
-import { menuItems } from "@/constant/data";
 import useDarkMode from "@/hooks/useDarkMode";
 import useMobileMenu from "@/hooks/useMobileMenu";
 import useSemiDark from "@/hooks/useSemiDark";
 import useSkin from "@/hooks/useSkin";
+import { getMenuItems } from "@/utils/menuSelector";
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import SimpleBar from "simplebar-react";
 import Navmenu from "./Navmenu";
@@ -17,6 +18,12 @@ import MobileLogo from "@/assets/images/logo/logo-c.svg";
 const MobileMenu = ({ className = "custom-class" }) => {
     const scrollableNodeRef = useRef();
     const [scroll, setScroll] = useState(false);
+    const user = useSelector((state) => state.auth.user);
+    const userRole = user?.role?.name || "";
+
+    // Get menu items based on user role
+    const menuItems = getMenuItems(userRole);
+
     useEffect(() => {
         const handleScroll = () => {
             if (scrollableNodeRef.current.scrollTop > 0) {
@@ -33,6 +40,7 @@ const MobileMenu = ({ className = "custom-class" }) => {
     const [skin] = useSkin();
     const [isDark] = useDarkMode();
     const [mobileMenu, setMobileMenu] = useMobileMenu();
+
     return (
         <div
             className={`${className} fixed  top-0 bg-white dark:bg-slate-800 shadow-lg  h-full   w-[248px]`}

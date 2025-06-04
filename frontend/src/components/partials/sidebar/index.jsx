@@ -1,16 +1,21 @@
-import React, { useRef, useEffect, useState } from "react";
+import useSemiDark from "@/hooks/useSemiDark";
+import useSidebar from "@/hooks/useSidebar";
+import useSkin from "@/hooks/useSkin";
+import { getMenuItems } from "@/utils/menuSelector";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import SimpleBar from "simplebar-react";
 import SidebarLogo from "./Logo";
 import Navmenu from "./Navmenu";
-import { menuItems } from "@/constant/data";
-import SimpleBar from "simplebar-react";
-import useSidebar from "@/hooks/useSidebar";
-import useSemiDark from "@/hooks/useSemiDark";
-import useSkin from "@/hooks/useSkin";
-import svgRabitImage from "@/assets/images/svg/rabit.svg";
 
 const Sidebar = () => {
     const scrollableNodeRef = useRef();
     const [scroll, setScroll] = useState(false);
+    const user = useSelector((state) => state.auth.user);
+    const userRole = user?.role?.name || "";
+
+    // Get menu items based on user role
+    const menuItems = getMenuItems(userRole);
 
     useEffect(() => {
         const handleScroll = () => {

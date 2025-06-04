@@ -1,17 +1,24 @@
 import Icon from "@/components/ui/Icon";
-import { menuItems } from "@/constant/data";
+import { getMenuItems } from "@/utils/menuSelector";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { NavLink, useLocation } from "react-router-dom";
 
 const Breadcrumbs = () => {
     const location = useLocation();
+    const user = useSelector((state) => state.auth.user);
+    const userRole = user?.role?.name || "";
+
+    // Get menu items based on user role
+    const menuItems = getMenuItems(userRole);
+
     // Split the pathname into segments and filter out empty strings.
     const segments = location.pathname.split("/").filter(Boolean);
-    // Remove "admin" if it exists as the first segment.
-    if (segments[0] === "admin") {
+    // Remove "admin" or "company" if they exist as the first segment.
+    if (segments[0] === "admin" || segments[0] === "company") {
         segments.shift();
     }
-    // Create a readable breadcrumb string (you may customize the join character)
+    // Create a readable breadcrumb string
     const locationName = segments.join(" / ");
 
     const [isHide, setIsHide] = useState(null);
@@ -34,7 +41,10 @@ const Breadcrumbs = () => {
             setIsHide(currentChild?.isHide || false);
             setGroupTitle(currentChild?.title);
         }
-    }, [location, locationName]);
+    }, [location, locationName, menuItems]);
+
+    // Determine the base route for navigation based on user role
+    const baseRoute = userRole === "super_admin" ? "/admin" : "/company";
 
     return (
         <>
@@ -42,7 +52,10 @@ const Breadcrumbs = () => {
                 <div className="md:mb-6 mb-4 flex space-x-3 rtl:space-x-reverse">
                     <ul className="breadcrumbs">
                         <li className="text-primary-500">
-                            <NavLink to="/admin/dashboard" className="text-lg">
+                            <NavLink
+                                to={`${baseRoute}/dashboard`}
+                                className="text-lg"
+                            >
                                 <Icon icon="heroicons-outline:home" />
                             </NavLink>
                             <span className="breadcrumbs-icon rtl:transform rtl:rotate-180">
