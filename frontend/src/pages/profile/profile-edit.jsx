@@ -65,6 +65,16 @@ const ProfileEdit = () => {
         avatar: null,
     });
 
+    // Password form state
+    const [passwordForm, setPasswordForm] = useState({
+        password: "",
+        password_confirmation: "",
+    });
+
+    // Password validation state
+    const [passwordError, setPasswordError] = useState(null);
+    const [confirmPasswordError, setConfirmPasswordError] = useState(null);
+
     const fileInputRef = useRef(null);
 
     const handleFileChange = async (e) => {
@@ -105,8 +115,34 @@ const ProfileEdit = () => {
         setFormData({ ...formData, [name]: value });
     };
 
+    const handlePasswordChange = (e) => {
+        const { name, value } = e.target;
+        setPasswordForm({ ...passwordForm, [name]: value });
+
+        // Clear errors when typing
+        if (name === "password") setPasswordError(null);
+        if (name === "password_confirmation") setConfirmPasswordError(null);
+    };
+
+    const validatePassword = () => {
+        let isValid = true;
+
+        if (passwordForm.password && passwordForm.password.length < 8) {
+            setPasswordError("Password must be at least 8 characters");
+            isValid = false;
+        }
+
+        if (passwordForm.password !== passwordForm.password_confirmation) {
+            setConfirmPasswordError("Passwords do not match");
+            isValid = false;
+        }
+
+        return isValid;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         try {
             const name = `${formData.first_name} ${formData.last_name}`.trim();
             const updateData = {
@@ -115,6 +151,16 @@ const ProfileEdit = () => {
                 phone: formData.phone,
                 avatar: formData.avatar,
             };
+
+            // Add password to update data if provided and valid
+            if (passwordForm.password) {
+                if (!validatePassword()) {
+                    return; // Stop submission if passwords are invalid
+                }
+                updateData.password = passwordForm.password;
+                updateData.password_confirmation =
+                    passwordForm.password_confirmation;
+            }
 
             let updatedProfile;
 
@@ -131,8 +177,21 @@ const ProfileEdit = () => {
             toast.success("Profile updated successfully");
             navigate(`${routePrefix}/profile`);
         } catch (error) {
-            toast.error(error?.data?.message || "Failed to update profile");
             console.error("Profile update error:", error);
+
+            if (error?.data?.errors) {
+                // Handle validation errors from the API
+                const errors = error.data.errors;
+
+                if (errors.password) {
+                    setPasswordError(errors.password[0]);
+                }
+                if (errors.password_confirmation) {
+                    setConfirmPasswordError(errors.password_confirmation[0]);
+                }
+            } else {
+                toast.error(error?.data?.message || "Failed to update profile");
+            }
         }
     };
 
@@ -196,38 +255,48 @@ const ProfileEdit = () => {
                             type="text"
                             placeholder="Enter first name"
                             defaultValue={formData.first_name}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    first_name: e.target.value,
-                                })
-                            }
+                            onChange={handleChange}
                         />
                         <Textinput
                             label="Last Name"
                             type="text"
                             placeholder="Enter last name"
                             defaultValue={formData.last_name}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    last_name: e.target.value,
-                                })
-                            }
+                            onChange={handleChange}
                         />
                         <Textinput
                             label="Phone"
                             type="text"
                             placeholder="Enter phone"
                             defaultValue={formData.phone}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    phone: e.target.value,
-                                })
-                            }
+                            onChange={handleChange}
                         />
                     </div>
+                </Card>
+
+                <Card title="Change Password" className="mt-5">
+                    <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
+                        <Textinput
+                            label="New Password"
+                            type="password"
+                            placeholder="Enter new password"
+                            defaultValue={passwordForm.password}
+                            onChange={handlePasswordChange}
+                            error={passwordError}
+                        />
+                        <Textinput
+                            label="Confirm Password"
+                            type="password"
+                            placeholder="Confirm new password"
+                            defaultValue={passwordForm.password_confirmation}
+                            onChange={handlePasswordChange}
+                            error={confirmPasswordError}
+                        />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-2">
+                        Leave blank if you don't want to change your password.
+                        Password must be at least 8 characters.
+                    </p>
                 </Card>
 
                 <Card title="Profile Picture" className="mt-5">
