@@ -73,14 +73,14 @@ function Users({ title = "Team Members" }) {
         () => [
             {
                 Header: "Name",
-                accessor: "userProfile.name",
+                accessor: (row) => row.userProfile?.name || row.user_profile?.name || "—",
                 Cell: ({ cell: { value }, row }) => (
                     <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full overflow-hidden mr-3">
-                            {row.original.userProfile?.avatar ? (
+                            {(row.original.userProfile?.avatar || row.original.user_profile?.avatar) ? (
                                 <img
                                     src={`${import.meta.env.VITE_API_URL}/${
-                                        row.original.userProfile.avatar
+                                        row.original.userProfile?.avatar || row.original.user_profile?.avatar
                                     }`}
                                     alt={value}
                                     className="w-full h-full object-cover"
@@ -91,7 +91,7 @@ function Users({ title = "Team Members" }) {
                                 </div>
                             )}
                         </div>
-                        <span>{value || "—"}</span>
+                        <span>{value}</span>
                     </div>
                 ),
             },
@@ -111,8 +111,8 @@ function Users({ title = "Team Members" }) {
             },
             {
                 Header: "Phone",
-                accessor: "userProfile.phone",
-                Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
+                accessor: (row) => row.userProfile?.phone || row.user_profile?.phone || "—",
+                Cell: ({ cell: { value } }) => <span>{value}</span>,
             },
             {
                 Header: "Action",
@@ -184,6 +184,14 @@ function Users({ title = "Team Members" }) {
         [currentUser]
     );
 
+    // Delete modal content - update to handle both userProfile and user_profile
+    const getUserName = () => {
+        if (!selectedUser) return "";
+        return selectedUser.userProfile?.name || 
+               selectedUser.user_profile?.name || 
+               selectedUser.email;
+    };
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setPagination((prev) => ({
@@ -248,11 +256,8 @@ function Users({ title = "Team Members" }) {
                     {selectedUser ? (
                         <>
                             Are you sure you want to delete{" "}
-                            <strong>
-                                {selectedUser.userProfile?.name ||
-                                    selectedUser.email}
-                            </strong>
-                            ? This action cannot be undone.
+                            <strong>{getUserName()}</strong>? This action
+                            cannot be undone.
                         </>
                     ) : (
                         "Are you sure you want to delete this user? This action cannot be undone."
