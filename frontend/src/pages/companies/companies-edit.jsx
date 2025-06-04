@@ -405,6 +405,8 @@ const CompanyEdit = () => {
                             type="number"
                             placeholder="Enter price"
                             defaultValue={formData.plan?.plan_price}
+                            step="0.01"
+                            min="0"
                             onChange={(e) =>
                                 handlePlanChange({
                                     target: {
