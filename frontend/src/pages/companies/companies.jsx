@@ -2,24 +2,21 @@ import SkeletionTable from "@/components/skeleton/Table";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
+import Modal from "@/components/ui/Modal";
 import Tooltip from "@/components/ui/Tooltip";
 import {
-    useDeleteCustomerMutation,
-    useGetCustomersQuery,
-} from "@/store/api/customers/customersApiSlice";
+    useDeleteCompanyMutation,
+    useGetCompaniesQuery,
+} from "@/store/api/companies/companiesApiSlice";
+import { setCompany } from "@/store/api/companies/companiesSlice";
 import { useEffect, useMemo, useState } from "react";
-
-import Modal from "@/components/ui/Modal";
-import { setCustomer } from "@/store/api/customers/customersSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCustomTable } from "../common/useCustomTable";
 
-function Customers({ title = "Customers" }) {
+function Companies({ title = "Companies" }) {
     const [searchValue, setSearchValue] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
-
     const [deleteModal, setDeleteModal] = useState(false);
     const [pagination, setPagination] = useState({
         page: 1,
@@ -30,44 +27,44 @@ function Customers({ title = "Customers" }) {
     const dispatch = useDispatch();
 
     const {
-        data: customers,
+        data: companies,
         isLoading,
         isError,
         isFetching,
         error,
-    } = useGetCustomersQuery(pagination);
+    } = useGetCompaniesQuery(pagination);
 
-    const [deleteCustomer, { isLoading: isDeleting }] =
-        useDeleteCustomerMutation();
+    const [deleteCompany, { isLoading: isDeleting }] =
+        useDeleteCompanyMutation();
 
     const handleSearch = (value) => {
         setSearchValue(value);
     };
 
     // Delete modal handlers
-    const handleDeleteClick = (customer) => {
-        dispatch(setCustomer(customer));
+    const handleDeleteClick = (company) => {
+        dispatch(setCompany(company));
         setDeleteModal(true);
     };
 
     const handleCloseModal = () => {
         setDeleteModal(false);
-        dispatch(setCustomer(null));
+        dispatch(setCompany(null));
     };
 
-    const selectedCustomer = useSelector((state) => state.customers.customer);
+    const selectedCompany = useSelector((state) => state.companies.company);
 
     const handleDeleteConfirm = async () => {
-        if (!selectedCustomer) return;
+        if (!selectedCompany) return;
         try {
-            await deleteCustomer(selectedCustomer.id).unwrap();
+            await deleteCompany(selectedCompany.id).unwrap();
             toast.success(
-                `Customer ${selectedCustomer.name} deleted successfully!`
+                `Company ${selectedCompany.name} deleted successfully!`
             );
             setDeleteModal(false);
-            dispatch(setCustomer(null));
+            dispatch(setCompany(null));
         } catch (error) {
-            toast.error(error?.data?.message || "Failed to delete customer");
+            toast.error(error?.data?.message || "Failed to delete company");
             console.log(error);
         }
     };
@@ -76,18 +73,8 @@ function Customers({ title = "Customers" }) {
     const columns = useMemo(
         () => [
             {
-                Header: "Company Name",
-                accessor: "company_name",
-                Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
-            },
-            {
-                Header: "Representative",
-                accessor: "representive",
-                Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
-            },
-            {
-                Header: "Phone",
-                accessor: "phone",
+                Header: "Name",
+                accessor: "name",
                 Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
             },
             {
@@ -96,52 +83,36 @@ function Customers({ title = "Customers" }) {
                 Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
             },
             {
+                Header: "Phone",
+                accessor: "phone",
+                Cell: ({ cell: { value } }) => <span>{value || "—"}</span>,
+            },
+            {
+                Header: "Website",
+                accessor: "website",
+                Cell: ({ cell: { value } }) =>
+                    value ? (
+                        <a
+                            href={value}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-500 hover:underline"
+                        >
+                            {value}
+                        </a>
+                    ) : (
+                        <span>—</span>
+                    ),
+            },
+            {
                 Header: "Location",
                 accessor: "city",
                 Cell: ({ row }) => (
                     <span>
-                        {[row.original.city, row.original.country?.name]
+                        {[row.original.city, row.original.country]
                             .filter(Boolean)
                             .join(", ") || "—"}
                     </span>
-                ),
-            },
-            {
-                Header: "Status",
-                accessor: "is_active",
-                Cell: ({ cell: { value } }) => (
-                    <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                            value
-                                ? "bg-success-500 text-white"
-                                : "bg-danger-500 text-white"
-                        }`}
-                    >
-                        {value ? "Active" : "Inactive"}
-                    </span>
-                ),
-            },
-            {
-                Header: "Agent",
-                accessor: "agent",
-                Cell: ({ row }) => (
-                    <div>
-                        {row.original.agent ? (
-                            <div className="flex flex-col">
-                                <span className="text-success-500">
-                                    {row.original.agentRelation?.name ||
-                                        "Has agent"}
-                                </span>
-                                {row.original.agent_percentage && (
-                                    <span className="text-sm text-slate-500">
-                                        {row.original.agent_percentage}%
-                                    </span>
-                                )}
-                            </div>
-                        ) : (
-                            <span className="text-slate-500">No agent</span>
-                        )}
-                    </div>
                 ),
             },
             {
@@ -160,7 +131,7 @@ function Customers({ title = "Customers" }) {
                                 type="button"
                                 onClick={() =>
                                     navigate(
-                                        `/admin/customers/${row.original.id}`
+                                        `/admin/companies/${row.original.id}`
                                     )
                                 }
                             >
@@ -179,7 +150,7 @@ function Customers({ title = "Customers" }) {
                                 type="button"
                                 onClick={() =>
                                     navigate(
-                                        `/admin/customers/${row.original.id}/edit`
+                                        `/admin/companies/${row.original.id}/edit`
                                     )
                                 }
                             >
@@ -210,7 +181,6 @@ function Customers({ title = "Customers" }) {
     );
 
     useEffect(() => {
-        setIsSearching(true);
         const timer = setTimeout(() => {
             setPagination((prev) => ({
                 ...prev,
@@ -235,7 +205,7 @@ function Customers({ title = "Customers" }) {
         handleNext,
         renderPaginationButtons,
     } = useCustomTable({
-        dataVar: customers,
+        dataVar: companies,
         columns,
         pagination,
         setPagination,
@@ -268,17 +238,17 @@ function Customers({ title = "Customers" }) {
                 }
             >
                 <h4 className="font-medium text-lg mb-3 text-slate-900">
-                    Delete Customer
+                    Delete Company
                 </h4>
                 <div className="text-base text-slate-600 dark:text-slate-300">
-                    {selectedCustomer ? (
+                    {selectedCompany ? (
                         <>
                             Are you sure you want to delete{" "}
-                            <strong>{selectedCustomer.name}</strong>? This
-                            action cannot be undone.
+                            <strong>{selectedCompany.name}</strong>? This action
+                            cannot be undone.
                         </>
                     ) : (
-                        "Are you sure you want to delete this customer? This action cannot be undone."
+                        "Are you sure you want to delete this company? This action cannot be undone."
                     )}
                 </div>
             </Modal>
@@ -296,11 +266,11 @@ function Customers({ title = "Customers" }) {
 
                         <Button
                             icon="heroicons-outline:plus-sm"
-                            text="Add Record"
-                            className=" btn-dark font-normal btn-sm "
+                            text="Add Company"
+                            className="btn-dark font-normal btn-sm"
                             iconClass="text-lg"
                             onClick={() => {
-                                navigate("/admin/customers/create");
+                                navigate("/admin/companies/create");
                             }}
                         />
                     </div>
@@ -309,7 +279,7 @@ function Customers({ title = "Customers" }) {
                     <SkeletionTable count={4} />
                 ) : isError ? (
                     <div>
-                        Error fetching customers:{" "}
+                        Error fetching companies:{" "}
                         {error?.data?.message || "Unknown error"}
                     </div>
                 ) : (
@@ -317,7 +287,7 @@ function Customers({ title = "Customers" }) {
                         <div className="overflow-x-auto -mx-6">
                             <div className="inline-block min-w-full align-middle">
                                 <div className="overflow-hidden">
-                                    {customers && customers.data.length > 0 ? (
+                                    {companies && companies.data.length > 0 ? (
                                         <table
                                             className="min-w-full divide-y divide-slate-100 table-fixed dark:divide-slate-700"
                                             {...getTableProps()}
@@ -398,19 +368,19 @@ function Customers({ title = "Customers" }) {
                                                 className="inline-block text-4xl text-slate-400 mb-3"
                                             />
                                             <h3 className="text-lg font-medium text-slate-600 dark:text-slate-300">
-                                                No customers found
+                                                No companies found
                                             </h3>
                                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                                 {searchValue
                                                     ? `No results found for "${searchValue}"`
-                                                    : "No customers available in the database"}
+                                                    : "No companies available in the database"}
                                             </p>
                                         </div>
                                     )}
                                 </div>
                             </div>
                         </div>
-                        {customers && customers.data.length > 0 && (
+                        {companies && companies.data.length > 0 && (
                             <div className="md:flex md:space-y-0 space-y-5 justify-between mt-6 items-center">
                                 <div className="flex items-center space-x-3 rtl:space-x-reverse">
                                     <select
@@ -431,12 +401,12 @@ function Customers({ title = "Customers" }) {
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                         Page{" "}
                                         <span>
-                                            {customers
-                                                ? customers.current_page
+                                            {companies
+                                                ? companies.current_page
                                                 : 0}{" "}
                                             of{" "}
-                                            {customers
-                                                ? customers.last_page
+                                            {companies
+                                                ? companies.last_page
                                                 : 0}
                                         </span>
                                     </span>
@@ -445,12 +415,12 @@ function Customers({ title = "Customers" }) {
                                     <li>
                                         <button
                                             className={
-                                                !customers?.prev_page_url
+                                                !companies?.prev_page_url
                                                     ? "opacity-50 cursor-not-allowed"
                                                     : ""
                                             }
                                             onClick={handleFirst}
-                                            disabled={!customers?.prev_page_url}
+                                            disabled={!companies?.prev_page_url}
                                         >
                                             <Icon icon="heroicons:chevron-double-left-solid" />
                                         </button>
@@ -458,12 +428,12 @@ function Customers({ title = "Customers" }) {
                                     <li>
                                         <button
                                             className={
-                                                !customers?.prev_page_url
+                                                !companies?.prev_page_url
                                                     ? "opacity-50 cursor-not-allowed"
                                                     : ""
                                             }
                                             onClick={handlePrevious}
-                                            disabled={!customers?.prev_page_url}
+                                            disabled={!companies?.prev_page_url}
                                         >
                                             Prev
                                         </button>
@@ -472,12 +442,12 @@ function Customers({ title = "Customers" }) {
                                     <li>
                                         <button
                                             className={
-                                                !customers?.next_page_url
+                                                !companies?.next_page_url
                                                     ? "opacity-50 cursor-not-allowed"
                                                     : ""
                                             }
                                             onClick={handleNext}
-                                            disabled={!customers?.next_page_url}
+                                            disabled={!companies?.next_page_url}
                                         >
                                             Next
                                         </button>
@@ -485,9 +455,9 @@ function Customers({ title = "Customers" }) {
                                     <li>
                                         <button
                                             onClick={handleLast}
-                                            disabled={!customers?.next_page_url}
+                                            disabled={!companies?.next_page_url}
                                             className={
-                                                !customers?.next_page_url
+                                                !companies?.next_page_url
                                                     ? "opacity-50 cursor-not-allowed"
                                                     : ""
                                             }
@@ -505,4 +475,4 @@ function Customers({ title = "Customers" }) {
     );
 }
 
-export default Customers;
+export default Companies;

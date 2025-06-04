@@ -11,9 +11,9 @@ export const menuItems = [
     },
 
     {
-        title: "Company",
-        icon: "heroicons-outline:building-office-2",
-        link: "company",
+        title: "Companies",
+        icon: "heroicons-outline:office-building",
+        link: "companies",
     },
 ];
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\CompanyController;
 use App\Http\Middleware\CompanyAdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class]
     Route::get('/profile/{id}', [UserProfileController::class, 'show']);
     Route::put('/profile/{id}', [UserProfileController::class, 'update']);
     Route::get('/profile/user/{userId}', [UserProfileController::class, 'showByUserId']);
+
+    // Companies
+    Route::get('/companies', [CompanyController::class, 'index']);
+    Route::get('/companies/{company}', [CompanyController::class, 'show']);
+    Route::post('/companies', [CompanyController::class, 'store']);
+    Route::put('/companies/{company}', [CompanyController::class, 'update']);
+    Route::delete('/companies/{company}', [CompanyController::class, 'destroy']);
+
 
     // Add more admin-specific routes here
 });

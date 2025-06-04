@@ -11,6 +11,14 @@ const ForgotPass = lazy(() => import("./pages/auth/forgot-password"));
 const ResetPassword = lazy(() => import("./pages/auth/reset-password"));
 const Profile = lazy(() => import("./pages/profile/profile"));
 const ProfileEdit = lazy(() => import("./pages/profile/profile-edit"));
+
+const Companies = lazy(() => import("./pages/companies/companies"));
+const CompaniesShow = lazy(() => import("./pages/companies/companies-show"));
+const CompaniesCreate = lazy(() =>
+    import("./pages/companies/companies-create")
+);
+const CompaniesEdit = lazy(() => import("./pages/companies/companies-edit"));
+
 const Error = lazy(() => import("./pages/404"));
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -70,6 +78,18 @@ function App() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="profile/:id/edit" element={<ProfileEdit />} />
+
+                    <Route path="companies" element={<Companies />} />
+                    <Route
+                        path="companies/create"
+                        element={<CompaniesCreate />}
+                    />
+                    <Route path="companies/:id" element={<CompaniesShow />} />
+                    <Route
+                        path="companies/:id/edit"
+                        element={<CompaniesEdit />}
+                    />
+
                     <Route path="*" element={<Navigate to="/404" />} />
                 </Route>
 
