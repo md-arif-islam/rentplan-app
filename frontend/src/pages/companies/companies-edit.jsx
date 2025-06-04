@@ -2,6 +2,7 @@ import LoadingContent from "@/components/Loading";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
+import Select from "@/components/ui/Select";
 import Textinput from "@/components/ui/Textinput";
 import {
     useGetCompanyQuery,
@@ -32,6 +33,16 @@ const CompanyEdit = () => {
         postal_code: "",
         country: "",
         logo: null,
+        plan: {
+            plan_name: "Basic",
+            plan_price: 0,
+            plan_status: "active",
+            plan_features: ["basic_features"],
+            plan_start_date: new Date().toISOString().split("T")[0],
+            plan_expiry_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0],
+        },
     });
 
     // Initialize form with company data when available
@@ -49,6 +60,18 @@ const CompanyEdit = () => {
                 postal_code: company.postal_code || "",
                 country: company.country || "",
                 logo: company.logo || null,
+                plan: company.plan || {
+                    plan_name: "Basic",
+                    plan_price: 0,
+                    plan_status: "active",
+                    plan_features: ["basic_features"],
+                    plan_start_date: new Date().toISOString().split("T")[0],
+                    plan_expiry_date: new Date(
+                        Date.now() + 30 * 24 * 60 * 60 * 1000
+                    )
+                        .toISOString()
+                        .split("T")[0],
+                },
             });
         }
     }, [company]);
@@ -56,6 +79,17 @@ const CompanyEdit = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+    };
+
+    const handlePlanChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            plan: {
+                ...formData.plan,
+                [name]: value,
+            },
+        });
     };
 
     const handleFileChange = async (e) => {
@@ -98,6 +132,13 @@ const CompanyEdit = () => {
             ? formData.logo
             : `${import.meta.env.VITE_API_URL}/${formData.logo}`
         : null;
+
+    const planStatusOptions = [
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+        { value: "trial", label: "Trial" },
+        { value: "expired", label: "Expired" },
+    ];
 
     if (isLoading) {
         return <LoadingContent />;
@@ -159,7 +200,14 @@ const CompanyEdit = () => {
                             type="text"
                             placeholder="Enter company name"
                             defaultValue={formData.name}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "name",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                             required
                         />
                         <Textinput
@@ -167,7 +215,14 @@ const CompanyEdit = () => {
                             type="email"
                             placeholder="Enter company email"
                             defaultValue={formData.email}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "email",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                             required
                         />
                         <Textinput
@@ -175,14 +230,28 @@ const CompanyEdit = () => {
                             type="text"
                             placeholder="Enter phone number"
                             defaultValue={formData.phone}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "phone",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="Website"
                             type="url"
                             placeholder="Enter website URL"
                             defaultValue={formData.website}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "website",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                     </div>
                 </Card>
@@ -194,42 +263,84 @@ const CompanyEdit = () => {
                             type="text"
                             placeholder="Enter address line 1"
                             defaultValue={formData.address_line_1}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "address_line_1",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="Address Line 2"
                             type="text"
                             placeholder="Enter address line 2"
                             defaultValue={formData.address_line_2}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "address_line_2",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="City"
                             type="text"
                             placeholder="Enter city"
                             defaultValue={formData.city}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "city",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="State/Province"
                             type="text"
                             placeholder="Enter state or province"
                             defaultValue={formData.state}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "state",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="Postal Code"
                             type="text"
                             placeholder="Enter postal code"
                             defaultValue={formData.postal_code}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "postal_code",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                         <Textinput
                             label="Country"
                             type="text"
                             placeholder="Enter country"
                             defaultValue={formData.country}
-                            onChange={handleChange}
+                            onChange={(e) =>
+                                handleChange({
+                                    target: {
+                                        name: "country",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
                         />
                     </div>
                 </Card>
@@ -273,55 +384,77 @@ const CompanyEdit = () => {
                     </div>
                 </Card>
 
-                {company.plan && (
-                    <Card title="Plan Information" className="mt-5">
-                        <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5">
-                            <div className="space-y-2">
-                                <div className="text-sm text-slate-400">
-                                    Plan Name
-                                </div>
-                                <div className="font-medium text-slate-900">
-                                    {company.plan.plan_name || "—"}
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="text-sm text-slate-400">
-                                    Status
-                                </div>
-                                <div className="font-medium">
-                                    <span
-                                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium
-                                        ${
-                                            company.plan.plan_status ===
-                                            "active"
-                                                ? "bg-success-500 text-white"
-                                                : company.plan.plan_status ===
-                                                  "trial"
-                                                ? "bg-warning-500 text-white"
-                                                : "bg-danger-500 text-white"
-                                        }`}
-                                    >
-                                        {company.plan.plan_status || "Inactive"}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="text-sm text-slate-400">
-                                    Expiry Date
-                                </div>
-                                <div className="font-medium text-slate-900">
-                                    {company.plan.plan_expiry_date
-                                        ? new Date(
-                                              company.plan.plan_expiry_date
-                                          ).toLocaleDateString()
-                                        : "—"}
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-                )}
+                <Card title="Plan Information" className="mt-5">
+                    <div className="grid lg:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-5">
+                        <Textinput
+                            label="Plan Name"
+                            type="text"
+                            placeholder="Enter plan name"
+                            defaultValue={formData.plan?.plan_name}
+                            onChange={(e) =>
+                                handlePlanChange({
+                                    target: {
+                                        name: "plan_name",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                        <Textinput
+                            label="Price"
+                            type="number"
+                            placeholder="Enter price"
+                            defaultValue={formData.plan?.plan_price}
+                            onChange={(e) =>
+                                handlePlanChange({
+                                    target: {
+                                        name: "plan_price",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                        <Select
+                            label="Status"
+                            options={planStatusOptions}
+                            value={formData.plan?.plan_status || "active"}
+                            onChange={(e) =>
+                                handlePlanChange({
+                                    target: {
+                                        name: "plan_status",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                        <Textinput
+                            label="Start Date"
+                            type="date"
+                            defaultValue={formData.plan?.plan_start_date}
+                            onChange={(e) =>
+                                handlePlanChange({
+                                    target: {
+                                        name: "plan_start_date",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                        <Textinput
+                            label="Expiry Date"
+                            type="date"
+                            defaultValue={formData.plan?.plan_expiry_date}
+                            onChange={(e) =>
+                                handlePlanChange({
+                                    target: {
+                                        name: "plan_expiry_date",
+                                        value: e.target.value,
+                                    },
+                                })
+                            }
+                        />
+                    </div>
+                </Card>
 
                 <div className="flex justify-between items-center mt-5">
                     <Button
