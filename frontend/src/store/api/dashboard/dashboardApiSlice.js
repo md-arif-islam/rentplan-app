@@ -5,12 +5,12 @@ export const dashboardApiSlice = apiSlice.injectEndpoints({
         getAdminDashboardStats: builder.query({
             query: () => `/api/admin/dashboard`,
             providesTags: ["Dashboard"],
-            keepUnusedDataFor: 60, // Cache for 1 minute
+            keepUnusedDataFor: 0,
         }),
         getCompanyDashboardStats: builder.query({
             query: () => `/api/company/dashboard`,
             providesTags: ["CompanyDashboard"],
-            keepUnusedDataFor: 60, // Cache for 1 minute
+            keepUnusedDataFor: 0,
         }),
     }),
 });
