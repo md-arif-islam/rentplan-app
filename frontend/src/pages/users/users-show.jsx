@@ -3,13 +3,12 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import { useGetCompanyUserQuery } from "@/store/api/users/usersApiSlice";
-import { useSelector } from "react-redux";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const UserShow = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const currentUser = useSelector((state) => state.auth.user);
     const {
         data: user,
         isLoading,
@@ -22,6 +21,7 @@ const UserShow = () => {
     }
 
     if (isError) {
+        toast.error(error?.data?.message || "Failed to load user details");
         return (
             <Card>
                 <div className="flex flex-col items-center justify-center h-60">
@@ -47,8 +47,21 @@ const UserShow = () => {
         );
     }
 
+    const userName = user.user_profile?.name || "No Name";
+    const userEmail = user.email || "No Email";
+    const userRole = user.role?.name?.replace("_", " ") || "No Role";
+    const userPhone = user.user_profile?.phone || "Not provided";
+
+    // Format dates without date-fns
+    const formatDate = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    };
+
     return (
         <div className="space-y-5">
+            {/* Header and action buttons */}
             <div className="flex flex-wrap justify-between items-center">
                 <h4 className="font-medium lg:text-2xl text-xl capitalize text-slate-900 inline-block ltr:pr-4 rtl:pl-4">
                     User Details
@@ -60,80 +73,58 @@ const UserShow = () => {
                         className="btn-outline-dark"
                         onClick={() => navigate("/company/users")}
                     />
-                    <Link to={`/company/users/${id}/edit`}>
-                        <Button
-                            icon="heroicons:pencil-square"
-                            text="Edit"
-                            className="btn-dark"
-                        />
-                    </Link>
+                    <Button
+                        icon="heroicons:pencil-square"
+                        text="Edit"
+                        className="btn-dark"
+                        onClick={() => navigate(`/company/users/${id}/edit`)}
+                    />
                 </div>
             </div>
 
-            <Card>
-                <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6">
-                    {/* Profile Image */}
+            {/* User Profile Card */}
+            <Card title="Account Information">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    {/* Avatar Column */}
                     <div className="flex flex-col items-center justify-start">
-                        <div className="w-40 h-40 rounded-full overflow-hidden border border-slate-200">
-                            {user.userProfile?.avatar ? (
+                        <div className="w-32 h-32 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200">
+                            {user.user_profile?.avatar ? (
                                 <img
                                     src={`${import.meta.env.VITE_API_URL}/${
-                                        user.userProfile.avatar
+                                        user.user_profile.avatar
                                     }`}
-                                    alt={user.userProfile.name}
-                                    className="w-full h-full object-cover"
+                                    alt={`${userName} Avatar`}
+                                    className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex items-center justify-center w-full h-full bg-slate-200">
-                                    <Icon
-                                        icon="heroicons-outline:user"
-                                        className="text-5xl text-slate-500"
-                                    />
-                                </div>
+                                <Icon
+                                    icon="heroicons-outline:user"
+                                    className="text-4xl text-slate-400"
+                                />
                             )}
                         </div>
                     </div>
 
-                    {/* User Details */}
-                    <div>
-                        <h2 className="text-2xl font-medium text-slate-900 mb-4">
-                            {user.userProfile?.name || "No name provided"}
-                        </h2>
+                    {/* Details Column */}
+                    <div className="col-span-4">
+                        <h3 className="text-xl font-medium text-slate-900 mb-4">
+                            {userName}
+                        </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-1">
                                 <p className="text-sm text-slate-500">Email</p>
-                                <p className="text-base font-medium">
-                                    {user.email}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <p className="text-sm text-slate-500">Phone</p>
-                                <p className="text-base font-medium">
-                                    {user.userProfile?.phone || "—"}
-                                </p>
+                                <p className="text-base">{userEmail}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-sm text-slate-500">Role</p>
-                                <p className="text-base font-medium">
-                                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-                                        {user.role?.name
-                                            ?.replace("_", " ")
-                                            .replace(/\b\w/g, (l) =>
-                                                l.toUpperCase()
-                                            )}
-                                    </span>
-                                </p>
+                                <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-primary-500 text-white">
+                                    {userRole}
+                                </span>
                             </div>
                             <div className="space-y-1">
-                                <p className="text-sm text-slate-500">
-                                    Created At
-                                </p>
-                                <p className="text-base font-medium">
-                                    {new Date(
-                                        user.created_at
-                                    ).toLocaleDateString()}
-                                </p>
+                                <p className="text-sm text-slate-500">Phone</p>
+                                <p className="text-base">{userPhone}</p>
                             </div>
                         </div>
                     </div>
@@ -148,17 +139,12 @@ const UserShow = () => {
                     className="btn-outline-dark"
                     onClick={() => navigate("/company/users")}
                 />
-                {currentUser.id !== user.id && (
-                    <div className="flex space-x-3">
-                        <Link to={`/company/users/${id}/edit`}>
-                            <Button
-                                icon="heroicons:pencil-square"
-                                text="Edit User"
-                                className="btn-dark"
-                            />
-                        </Link>
-                    </div>
-                )}
+                <Button
+                    icon="heroicons:pencil-square"
+                    text="Edit User"
+                    className="btn-dark"
+                    onClick={() => navigate(`/company/users/${id}/edit`)}
+                />
             </div>
         </div>
     );
