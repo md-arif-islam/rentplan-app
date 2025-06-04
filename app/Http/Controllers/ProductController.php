@@ -10,17 +10,17 @@ use Illuminate\Http\Request;
 class ProductController extends Controller
 {
     protected $productService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param ProductService $productService
      */
     public function __construct(ProductService $productService)
     {
         $this->productService = $productService;
     }
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -28,15 +28,15 @@ class ProductController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         $params = [
             'search' => $request->input('search'),
             'perPage' => $request->input('perPage', 10),
             'type' => $request->input('type'),
         ];
-        
+
         $products = $this->productService->getProducts($companyId, $params);
-        
+
         return response()->json($products);
     }
 
@@ -47,15 +47,15 @@ class ProductController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             // Add company ID to the validated data
             $data = $request->validated();
             $data['company_id'] = $companyId;
-            
+
             // Create product through service
             $product = $this->productService->createProduct($data);
-            
+
             return response()->json([
                 'message' => 'Product created successfully',
                 'data' => $product,
@@ -75,10 +75,10 @@ class ProductController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $product = $this->productService->getProduct($id, $companyId);
-            
+
             return response()->json($product);
         } catch (\Exception $e) {
             return response()->json([
@@ -94,13 +94,13 @@ class ProductController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $data = $request->validated();
-            
+
             // Update product through service
             $product = $this->productService->updateProduct($id, $data, $companyId);
-            
+
             return response()->json([
                 'message' => 'Product updated successfully',
                 'data' => $product,
@@ -120,10 +120,10 @@ class ProductController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $this->productService->deleteProduct($id, $companyId);
-            
+
             return response()->json([
                 'message' => 'Product deleted successfully',
             ]);

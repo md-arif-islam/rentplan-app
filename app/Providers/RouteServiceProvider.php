@@ -31,7 +31,7 @@ class RouteServiceProvider extends ServiceProvider
         // Add a custom rate limiter for auth
         RateLimiter::for('auth', function (Request $request) {
             $email = (string) $request->input('email');
-            return Limit::perMinute(5)->by($email ? $email.'|'.$request->ip() : $request->ip());
+            return Limit::perMinute(5)->by($email ? $email . '|' . $request->ip() : $request->ip());
         });
 
         $this->routes(function () {

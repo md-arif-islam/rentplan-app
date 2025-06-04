@@ -22,7 +22,7 @@ class UpdateCustomerRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('id');
-        
+
         return [
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',

@@ -9,7 +9,7 @@ class UserRepository
 {
     /**
      * Find a user by their email
-     * 
+     *
      * @param string $email
      * @return User|null
      */
@@ -19,10 +19,10 @@ class UserRepository
             ->with(['userProfile', 'role'])
             ->first();
     }
-    
+
     /**
      * Find a user by their ID
-     * 
+     *
      * @param int $id
      * @return User|null
      */
@@ -31,7 +31,7 @@ class UserRepository
         return User::with(['userProfile', 'role'])
             ->findOrFail($id);
     }
-    
+
     /**
      * Find users by company ID
      *
@@ -51,16 +51,16 @@ class UserRepository
                 $q->whereHas('userProfile', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
                 })
-                ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
         return $query->paginate($perPage);
     }
-    
+
     /**
      * Create a new user
-     * 
+     *
      * @param array $data
      * @return User
      */
@@ -68,10 +68,10 @@ class UserRepository
     {
         return User::create($data);
     }
-    
+
     /**
      * Update a user
-     * 
+     *
      * @param User $user
      * @param array $data
      * @return bool
@@ -80,10 +80,10 @@ class UserRepository
     {
         return $user->update($data);
     }
-    
+
     /**
      * Delete all tokens for a user
-     * 
+     *
      * @param User $user
      * @return void
      */
@@ -91,7 +91,7 @@ class UserRepository
     {
         $user->tokens()->delete();
     }
-    
+
     /**
      * Delete a user
      *

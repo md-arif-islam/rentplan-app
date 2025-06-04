@@ -19,10 +19,10 @@ class UserSeeder extends Seeder
         // Get roles
         $superAdminRole = Role::where('name', 'super_admin')->first();
         $companyAdminRole = Role::where('name', 'company_admin')->first();
-        
+
         // Get demo company
         $demoCompany = Company::where('name', 'RentPlan Demo Company')->first();
-        
+
         // Create super admin user
         $superAdmin = User::create([
             'email' => 'admin@rentplan.test',
@@ -33,14 +33,14 @@ class UserSeeder extends Seeder
             'status' => 'active',
             'force_password_change' => false,
         ]);
-        
+
         // Create profile for super admin
         UserProfile::create([
             'user_id' => $superAdmin->id,
             'name' => 'System Administrator',
             'phone' => '+31 612345678',
         ]);
-        
+
         // Create demo company admin
         $demoCompanyAdmin = User::create([
             'email' => 'company@rentplan.test',
@@ -51,20 +51,20 @@ class UserSeeder extends Seeder
             'status' => 'active',
             'force_password_change' => false,
         ]);
-        
+
         // Create profile for demo company admin
         UserProfile::create([
             'user_id' => $demoCompanyAdmin->id,
             'name' => 'Demo Company Manager',
             'phone' => '+31 687654321',
         ]);
-        
+
         // For each other company, create 1-3 admin users
         $companies = Company::where('id', '!=', $demoCompany->id)->get();
-        
+
         foreach ($companies as $company) {
             $adminCount = rand(1, 3);
-            
+
             for ($i = 0; $i < $adminCount; $i++) {
                 $user = User::factory()->forCompany($company)->create();
                 UserProfile::factory()->forUser($user)->create();

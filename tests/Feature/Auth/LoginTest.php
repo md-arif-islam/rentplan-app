@@ -37,14 +37,14 @@ class LoginTest extends TestCase
                 'user',
                 'message'
             ]);
-            
+
         $this->assertDatabaseHas('auth_logs', [
             'user_id' => $user->id,
             'email' => $user->email,
             'action' => 'login',
         ]);
     }
-    
+
     /** @test */
     public function a_user_cannot_login_with_incorrect_credentials()
     {
@@ -62,13 +62,13 @@ class LoginTest extends TestCase
             ->assertJson([
                 'message' => 'Invalid credentials'
             ]);
-            
+
         $this->assertDatabaseHas('auth_logs', [
             'email' => 'test@example.com',
             'action' => 'failed-login',
         ]);
     }
-    
+
     /** @test */
     public function login_returns_user_with_correct_profile_and_role()
     {
@@ -76,7 +76,7 @@ class LoginTest extends TestCase
             'email' => 'test@example.com',
             'password' => bcrypt('password'),
         ]);
-        
+
         $profile = $user->userProfile()->create([
             'name' => 'Test User',
             'phone' => '1234567890',

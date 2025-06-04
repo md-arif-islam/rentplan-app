@@ -28,7 +28,7 @@ class UserRepositoryTest extends TestCase
 
         // Use repository to find user
         $foundUser = $this->userRepository->findByEmail('repository_test@example.com');
-        
+
         // Assert user was found
         $this->assertNotNull($foundUser);
         $this->assertEquals($user->id, $foundUser->id);

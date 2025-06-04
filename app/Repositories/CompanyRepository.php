@@ -9,7 +9,7 @@ class CompanyRepository
 {
     /**
      * Get all companies with optional filtering
-     * 
+     *
      * @param string|null $search
      * @param int $perPage
      * @param string|null $status
@@ -37,10 +37,10 @@ class CompanyRepository
 
         return $query->paginate($perPage);
     }
-    
+
     /**
      * Find company by ID
-     * 
+     *
      * @param int $id
      * @return Company|null
      */
@@ -50,10 +50,10 @@ class CompanyRepository
             $query->with('role');
         }])->find($id);
     }
-    
+
     /**
      * Create a new company
-     * 
+     *
      * @param array $data
      * @return Company
      */
@@ -61,10 +61,10 @@ class CompanyRepository
     {
         return Company::create($data);
     }
-    
+
     /**
      * Update a company
-     * 
+     *
      * @param Company $company
      * @param array $data
      * @return bool
@@ -73,10 +73,10 @@ class CompanyRepository
     {
         return $company->update($data);
     }
-    
+
     /**
      * Delete a company
-     * 
+     *
      * @param Company $company
      * @return bool|null
      */

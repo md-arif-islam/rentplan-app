@@ -15,7 +15,7 @@ class UserProfileSeeder extends Seeder
     {
         // Find any users without profiles and create profiles for them
         $usersWithoutProfiles = User::doesntHave('userProfile')->get();
-        
+
         foreach ($usersWithoutProfiles as $user) {
             UserProfile::factory()->forUser($user)->create();
         }

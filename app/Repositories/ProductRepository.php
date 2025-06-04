@@ -11,7 +11,7 @@ class ProductRepository
 {
     /**
      * Get all products for a company with optional filtering
-     * 
+     *
      * @param int $companyId
      * @param string|null $search
      * @param int $perPage
@@ -21,26 +21,26 @@ class ProductRepository
     public function getAll(int $companyId, ?string $search = null, int $perPage = 10, ?int $type = null): LengthAwarePaginator
     {
         $query = Product::where('company_id', $companyId)->with('variations');
-        
+
         // Apply search filter if provided
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('specifications', 'like', "%{$search}%");
+                    ->orWhere('specifications', 'like', "%{$search}%");
             });
         }
-        
+
         // Filter by type if provided
         if ($type !== null) {
             $query->where('type', $type);
         }
-        
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
-    
+
     /**
      * Find product by ID for specific company
-     * 
+     *
      * @param int $id
      * @param int $companyId
      * @return Product|null
@@ -52,10 +52,10 @@ class ProductRepository
             ->with('variations')
             ->first();
     }
-    
+
     /**
      * Create a new product
-     * 
+     *
      * @param array $data
      * @return Product
      */
@@ -63,10 +63,10 @@ class ProductRepository
     {
         return Product::create($data);
     }
-    
+
     /**
      * Update a product
-     * 
+     *
      * @param Product $product
      * @param array $data
      * @return bool
@@ -75,10 +75,10 @@ class ProductRepository
     {
         return $product->update($data);
     }
-    
+
     /**
      * Delete a product
-     * 
+     *
      * @param Product $product
      * @return bool|null
      */
@@ -86,10 +86,10 @@ class ProductRepository
     {
         return $product->delete();
     }
-    
+
     /**
      * Create a product variation
-     * 
+     *
      * @param array $data
      * @return ProductVariation
      */
@@ -97,10 +97,10 @@ class ProductRepository
     {
         return ProductVariation::create($data);
     }
-    
+
     /**
      * Update a product variation
-     * 
+     *
      * @param ProductVariation $variation
      * @param array $data
      * @return bool
@@ -109,10 +109,10 @@ class ProductRepository
     {
         return $variation->update($data);
     }
-    
+
     /**
      * Delete a product variation
-     * 
+     *
      * @param ProductVariation $variation
      * @return bool|null
      */
@@ -120,10 +120,10 @@ class ProductRepository
     {
         return $variation->delete();
     }
-    
+
     /**
      * Get all variations for a product
-     * 
+     *
      * @param int $productId
      * @return Collection
      */
@@ -131,10 +131,10 @@ class ProductRepository
     {
         return ProductVariation::where('product_id', $productId)->get();
     }
-    
+
     /**
      * Find a variation by ID
-     * 
+     *
      * @param int $id
      * @return ProductVariation|null
      */

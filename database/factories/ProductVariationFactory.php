@@ -18,7 +18,7 @@ class ProductVariationFactory extends Factory
     public function definition(): array
     {
         return [
-            'product_id' => function() {
+            'product_id' => function () {
                 return Product::factory()->variable()->create()->id;
             },
             'variant_name' => $this->faker->words(2, true),
@@ -34,7 +34,7 @@ class ProductVariationFactory extends Factory
             'woocommerce_variation_id' => $this->faker->optional(0.3)->numberBetween(1000, 9999),
         ];
     }
-    
+
     /**
      * Create a variation for an existing product.
      */

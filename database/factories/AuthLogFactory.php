@@ -19,7 +19,7 @@ class AuthLogFactory extends Factory
     {
         $actions = ['login', 'logout', 'failed-login', 'password-reset-request', 'password-reset'];
         $action = $this->faker->randomElement($actions);
-        
+
         $userAgentDetails = [
             'browser' => $this->faker->randomElement(['Chrome', 'Firefox', 'Safari', 'Edge']),
             'browser_version' => $this->faker->numerify('#.#.#'),
@@ -31,14 +31,14 @@ class AuthLogFactory extends Factory
             'is_desktop' => $this->faker->boolean(50),
             'is_robot' => $this->faker->boolean(5),
         ];
-        
+
         return [
-            'user_id' => function() use ($action) {
-                return in_array($action, ['login', 'logout', 'password-reset']) 
+            'user_id' => function () use ($action) {
+                return in_array($action, ['login', 'logout', 'password-reset'])
                     ? User::factory()->create()->id
                     : null;
             },
-            'email' => function(array $attributes) use ($action) {
+            'email' => function (array $attributes) use ($action) {
                 if (!$attributes['user_id'] && in_array($action, ['failed-login', 'password-reset-request'])) {
                     return $this->faker->safeEmail();
                 }
@@ -52,7 +52,7 @@ class AuthLogFactory extends Factory
             ],
         ];
     }
-    
+
     /**
      * Configure for a login event
      */
@@ -60,7 +60,7 @@ class AuthLogFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             $user = User::factory()->create();
-            
+
             return [
                 'user_id' => $user->id,
                 'email' => $user->email,
@@ -68,7 +68,7 @@ class AuthLogFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Configure for a failed login event
      */
@@ -82,7 +82,7 @@ class AuthLogFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Configure for a rate-limited event
      */

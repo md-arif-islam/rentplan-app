@@ -9,7 +9,7 @@ class UserProfileRepository
 {
     /**
      * Find a profile by its ID
-     * 
+     *
      * @param int $id
      * @return UserProfile|null
      */
@@ -17,10 +17,10 @@ class UserProfileRepository
     {
         return UserProfile::with('user')->find($id);
     }
-    
+
     /**
      * Find a profile by user ID
-     * 
+     *
      * @param int $userId
      * @return UserProfile|null
      */
@@ -28,10 +28,10 @@ class UserProfileRepository
     {
         return UserProfile::where('user_id', $userId)->with('user')->first();
     }
-    
+
     /**
      * Create a new user profile
-     * 
+     *
      * @param array $data
      * @return UserProfile
      */
@@ -39,10 +39,10 @@ class UserProfileRepository
     {
         return UserProfile::create($data);
     }
-    
+
     /**
      * Update a user profile
-     * 
+     *
      * @param UserProfile $profile
      * @param array $data
      * @return bool
@@ -51,10 +51,10 @@ class UserProfileRepository
     {
         return $profile->update($data);
     }
-    
+
     /**
      * Delete a user profile
-     * 
+     *
      * @param UserProfile $profile
      * @return bool|null
      */
@@ -62,7 +62,7 @@ class UserProfileRepository
     {
         return $profile->delete();
     }
-    
+
     /**
      * Create or update a profile
      *
@@ -73,12 +73,12 @@ class UserProfileRepository
     public function createOrUpdate(int $userId, array $data): UserProfile
     {
         $profile = $this->findByUserId($userId);
-        
+
         if (!$profile) {
             $data['user_id'] = $userId;
             return $this->create($data);
         }
-        
+
         $this->update($profile, $data);
         return $profile->fresh();
     }

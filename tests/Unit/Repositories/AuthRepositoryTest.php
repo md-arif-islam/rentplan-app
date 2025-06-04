@@ -18,15 +18,15 @@ class AuthRepositoryTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         $this->userRepository = new UserRepository();
-        
+
         // Create a role
         $role = Role::create([
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create a test user
         $this->testUser = User::factory()->create([
             'email' => 'repo_test@example.com',
@@ -39,7 +39,7 @@ class AuthRepositoryTest extends TestCase
     public function test_find_user_by_id()
     {
         $user = $this->userRepository->findById($this->testUser->id);
-        
+
         $this->assertNotNull($user);
         $this->assertEquals($this->testUser->id, $user->id);
         $this->assertEquals('repo_test@example.com', $user->email);
@@ -48,7 +48,7 @@ class AuthRepositoryTest extends TestCase
     public function test_find_user_by_email()
     {
         $user = $this->userRepository->findByEmail('repo_test@example.com');
-        
+
         $this->assertNotNull($user);
         $this->assertEquals($this->testUser->id, $user->id);
     }
@@ -58,13 +58,13 @@ class AuthRepositoryTest extends TestCase
         // Create some tokens for the user
         $this->testUser->createToken('test1');
         $this->testUser->createToken('test2');
-        
+
         // Verify tokens exist
         $this->assertCount(2, $this->testUser->tokens);
-        
+
         // Delete tokens
         $this->userRepository->deleteAllTokens($this->testUser);
-        
+
         // Reload user and check tokens
         $this->testUser->refresh();
         $this->assertCount(0, $this->testUser->tokens);

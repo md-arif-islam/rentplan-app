@@ -23,16 +23,16 @@ class AuthServiceTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        
+
         // We'll use real repositories but mock the logger
         $this->userRepository = new UserRepository();
         $this->authLogger = Mockery::mock(AuthLoggerService::class);
-        
+
         // Don't log during tests
         $this->authLogger->shouldReceive('logLogin')->andReturn(null);
         $this->authLogger->shouldReceive('logFailedLogin')->andReturn(null);
         $this->authLogger->shouldReceive('logLogout')->andReturn(null);
-        
+
         $this->authService = new AuthService(
             $this->userRepository,
             $this->authLogger
@@ -52,7 +52,7 @@ class AuthServiceTest extends TestCase
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create user with known password
         $user = User::factory()->create([
             'email' => 'service_test@example.com',
@@ -77,7 +77,7 @@ class AuthServiceTest extends TestCase
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create user with known password
         $user = User::factory()->create([
             'email' => 'service_test@example.com',
@@ -89,7 +89,7 @@ class AuthServiceTest extends TestCase
         // Test login with wrong password
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Invalid credentials');
-        
+
         $this->authService->attemptLogin('service_test@example.com', 'wrong_password');
     }
 }

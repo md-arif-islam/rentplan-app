@@ -12,10 +12,10 @@ use Illuminate\Http\Request;
 class CompanyController extends Controller
 {
     protected $companyService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param CompanyService $companyService
      */
     public function __construct(CompanyService $companyService)

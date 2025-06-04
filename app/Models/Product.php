@@ -44,7 +44,7 @@ class Product extends Model
     {
         return $this->belongsTo(Company::class);
     }
-    
+
     /**
      * Get the variations for the product.
      */
@@ -52,7 +52,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductVariation::class);
     }
-    
+
     /**
      * Get the orders for the product.
      */
@@ -60,7 +60,7 @@ class Product extends Model
     {
         return $this->hasMany(Order::class);
     }
-    
+
     /**
      * Scope a query to only include products of a specific type.
      */
@@ -68,7 +68,7 @@ class Product extends Model
     {
         return $query->where('type', $type);
     }
-    
+
     /**
      * Scope a query to only include simple products.
      */
@@ -76,7 +76,7 @@ class Product extends Model
     {
         return $query->where('type', 0);
     }
-    
+
     /**
      * Scope a query to only include variable products.
      */

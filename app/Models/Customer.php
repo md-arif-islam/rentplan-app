@@ -36,7 +36,7 @@ class Customer extends Model
     {
         return $this->belongsTo(Company::class);
     }
-    
+
     /**
      * Get the orders for the customer.
      */
@@ -44,7 +44,7 @@ class Customer extends Model
     {
         return $this->hasMany(Order::class);
     }
-    
+
     /**
      * Get the customer's full name.
      *

@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 class CustomerController extends Controller
 {
     protected $customerService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param CustomerService $customerService
      */
     public function __construct(CustomerService $customerService)
@@ -28,14 +28,14 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         $params = [
             'search' => $request->input('search'),
             'perPage' => $request->input('perPage', 10),
         ];
-        
+
         $customers = $this->customerService->getCustomers($companyId, $params);
-        
+
         return response()->json($customers);
     }
 
@@ -46,15 +46,15 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             // Add company ID to the validated data
             $data = $request->validated();
             $data['company_id'] = $companyId;
-            
+
             // Create customer through service
             $customer = $this->customerService->createCustomer($data);
-            
+
             return response()->json([
                 'message' => 'Customer created successfully',
                 'data' => $customer,
@@ -73,10 +73,10 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $customer = $this->customerService->getCustomer($id, $companyId);
-            
+
             return response()->json($customer);
         } catch (\Exception $e) {
             return response()->json([
@@ -92,13 +92,13 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $data = $request->validated();
-            
+
             // Update customer through service
             $customer = $this->customerService->updateCustomer($id, $data, $companyId);
-            
+
             return response()->json([
                 'message' => 'Customer updated successfully',
                 'data' => $customer,
@@ -117,10 +117,10 @@ class CustomerController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $this->customerService->deleteCustomer($id, $companyId);
-            
+
             return response()->json([
                 'message' => 'Customer deleted successfully',
             ]);

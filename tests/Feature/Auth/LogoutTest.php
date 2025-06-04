@@ -29,32 +29,32 @@ class LogoutTest extends TestCase
             ->assertJson([
                 'message' => 'User logged out successfully'
             ]);
-            
+
         $this->assertDatabaseHas('auth_logs', [
             'user_id' => $user->id,
             'email' => $user->email,
             'action' => 'logout',
         ]);
     }
-    
+
     /** @test */
     public function logout_clears_user_tokens()
     {
         $user = User::factory()->create();
-        
+
         // Create a token
         $token = $user->createToken('test-token')->plainTextToken;
-        
+
         // Check token exists
         $this->assertDatabaseCount('personal_access_tokens', 1);
-        
+
         // Logout with token
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token,
         ])->postJson('/api/logout');
-        
+
         $response->assertStatus(200);
-        
+
         // Token should be deleted
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }

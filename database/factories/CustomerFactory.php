@@ -18,7 +18,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => function() {
+            'company_id' => function () {
                 return Company::factory()->create()->id;
             },
             'first_name' => $this->faker->firstName(),
@@ -33,7 +33,7 @@ class CustomerFactory extends Factory
             'woocommerce_customer_id' => $this->faker->optional(0.3)->numberBetween(1000, 9999),
         ];
     }
-    
+
     /**
      * Create a customer for an existing company.
      */

@@ -19,7 +19,7 @@ class LoginTest extends DuskTestCase
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create user
         $user = User::factory()->create([
             'email' => 'dusk_test@example.com',
@@ -30,10 +30,10 @@ class LoginTest extends DuskTestCase
 
         $this->browse(function (Browser $browser) use ($user) {
             $browser->visit('/login')
-                    ->type('email', 'dusk_test@example.com')
-                    ->type('password', 'password')
-                    ->press('Sign in')
-                    ->assertPathIs('/company/dashboard');
+                ->type('email', 'dusk_test@example.com')
+                ->type('password', 'password')
+                ->press('Sign in')
+                ->assertPathIs('/company/dashboard');
         });
     }
 }

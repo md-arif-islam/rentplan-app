@@ -89,7 +89,7 @@ class User extends Authenticatable
 
     /**
      * Check if user has specific role
-     * 
+     *
      * @param string $roleName
      * @return bool
      */
@@ -97,20 +97,20 @@ class User extends Authenticatable
     {
         return $this->role && $this->role->name === $roleName;
     }
-    
+
     /**
      * Check if user is a super admin
-     * 
+     *
      * @return bool
      */
     public function isSuperAdmin(): bool
     {
         return $this->role && $this->role->name === 'super_admin' && $this->role->scope === 'platform';
     }
-    
+
     /**
      * Check if user is a company admin
-     * 
+     *
      * @return bool
      */
     public function isCompanyAdmin(): bool

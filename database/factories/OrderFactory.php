@@ -21,7 +21,7 @@ class OrderFactory extends Factory
         $startDate = $this->faker->dateTimeBetween('-30 days', '+10 days');
         $endDate = clone $startDate;
         $endDate->modify('+' . $this->faker->numberBetween(7, 90) . ' days');
-        
+
         return [
             'customer_id' => function () {
                 return Customer::factory()->create()->id;
@@ -45,7 +45,7 @@ class OrderFactory extends Factory
             'delivery_country' => $this->faker->country(),
         ];
     }
-    
+
     /**
      * Configure the model for an active order
      */
@@ -55,7 +55,7 @@ class OrderFactory extends Factory
             $startDate = $this->faker->dateTimeBetween('-30 days', 'now');
             $endDate = clone $startDate;
             $endDate->modify('+' . $this->faker->numberBetween(14, 90) . ' days');
-            
+
             return [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
@@ -63,7 +63,7 @@ class OrderFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Configure the model for a completed order
      */
@@ -73,7 +73,7 @@ class OrderFactory extends Factory
             $endDate = $this->faker->dateTimeBetween('-60 days', '-1 days');
             $startDate = clone $endDate;
             $startDate->modify('-' . $this->faker->numberBetween(7, 60) . ' days');
-            
+
             return [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
@@ -81,7 +81,7 @@ class OrderFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create an order for existing customer and product
      */

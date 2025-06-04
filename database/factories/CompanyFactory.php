@@ -18,9 +18,9 @@ class CompanyFactory extends Factory
     {
         $planStartDate = now()->subDays(rand(1, 30));
         $planEndDate = $planStartDate->copy()->addDays(rand(30, 365));
-        
+
         $planStatus = $this->faker->randomElement(['active', 'inactive', 'trial', 'expired']);
-        
+
         return [
             'name' => $this->faker->company(),
             'email' => $this->faker->unique()->companyEmail(),
@@ -43,24 +43,24 @@ class CompanyFactory extends Factory
             ],
         ];
     }
-    
+
     /**
      * Get features based on plan status
-     * 
+     *
      * @param string $status
      * @return array
      */
     private function getFeaturesByPlanStatus(string $status): array
     {
         $baseFeatures = ['basic_feature', 'customer_management'];
-        
+
         if ($status === 'active' || $status === 'trial') {
             return array_merge($baseFeatures, ['product_management', 'order_management']);
         }
-        
+
         return $baseFeatures;
     }
-    
+
     /**
      * Create a company with active plan
      */
@@ -69,7 +69,7 @@ class CompanyFactory extends Factory
         return $this->state(function (array $attributes) {
             $planStartDate = now()->subDays(rand(1, 30));
             $planEndDate = $planStartDate->copy()->addDays(rand(30, 365));
-            
+
             return [
                 'plan' => [
                     'plan_name' => $this->faker->randomElement(['Standard', 'Premium', 'Enterprise']),
@@ -82,7 +82,7 @@ class CompanyFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create a company with trial plan
      */
@@ -91,7 +91,7 @@ class CompanyFactory extends Factory
         return $this->state(function (array $attributes) {
             $planStartDate = now()->subDays(rand(1, 10));
             $planEndDate = $planStartDate->copy()->addDays(14);
-            
+
             return [
                 'plan' => [
                     'plan_name' => 'Trial',

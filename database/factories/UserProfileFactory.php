@@ -18,7 +18,7 @@ class UserProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => function() {
+            'user_id' => function () {
                 return User::factory()->create()->id;
             },
             'name' => $this->faker->name(),
@@ -26,7 +26,7 @@ class UserProfileFactory extends Factory
             'avatar' => null, // No avatar by default, can be set in specific test cases
         ];
     }
-    
+
     /**
      * Create a profile for an existing user
      */

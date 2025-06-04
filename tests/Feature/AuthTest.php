@@ -18,7 +18,7 @@ class AuthTest extends TestCase
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create a user for testing
         $user = User::factory()->create([
             'email' => 'test@example.com',
@@ -48,7 +48,7 @@ class AuthTest extends TestCase
             'name' => 'company_admin',
             'scope' => 'company'
         ]);
-        
+
         // Create a user for testing
         $user = User::factory()->create([
             'email' => 'test@example.com',

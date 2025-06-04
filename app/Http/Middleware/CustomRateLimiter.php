@@ -14,7 +14,7 @@ class CustomRateLimiter
 {
     protected $authLogger;
     protected $limiter;
-    
+
     /**
      * Create a new middleware instance.
      *
@@ -36,7 +36,7 @@ class CustomRateLimiter
     {
         // Generate a unique key for the rate limiter based on the request
         $key = $this->resolveRequestSignature($request, $type);
-        
+
         // Check if the request has exceeded the rate limit
         if (FacadesRateLimiter::tooManyAttempts($key, $maxAttempts)) {
             // Log the rate limit exceeded event
@@ -53,13 +53,13 @@ class CustomRateLimiter
                     'method' => $request->method(),
                 ]);
             }
-            
+
             return $this->buildTooManyAttemptsResponse($request, $key);
         }
-        
+
         // Increment the rate limiter
         FacadesRateLimiter::hit($key, $decaySeconds);
-        
+
         // Add rate limit headers to the response
         $response = $next($request);
         return $this->addHeaders(
@@ -68,7 +68,7 @@ class CustomRateLimiter
             FacadesRateLimiter::retriesLeft($key, $maxAttempts)
         );
     }
-    
+
     /**
      * Resolve request signature.
      *
@@ -80,18 +80,18 @@ class CustomRateLimiter
     {
         // For auth routes, use the email as part of the key if available
         if ($type === 'auth' && $email = $request->input('email')) {
-            return Str::lower($type.'|'.$email.'|'.$request->ip());
+            return Str::lower($type . '|' . $email . '|' . $request->ip());
         }
-        
+
         // For API routes, use the user ID if authenticated
         if ($request->user()) {
-            return Str::lower($type.'|'.$request->user()->id.'|'.$request->ip());
+            return Str::lower($type . '|' . $request->user()->id . '|' . $request->ip());
         }
-        
+
         // Default to IP address
-        return Str::lower($type.'|'.$request->ip());
+        return Str::lower($type . '|' . $request->ip());
     }
-    
+
     /**
      * Create a 'too many attempts' response.
      *
@@ -102,14 +102,14 @@ class CustomRateLimiter
     protected function buildTooManyAttemptsResponse(Request $request, $key)
     {
         $retryAfter = FacadesRateLimiter::availableIn($key);
-        
+
         return response()->json([
             'message' => 'Too many attempts, please try again later.',
             'retry_after' => $retryAfter,
             'seconds_until_retry' => $retryAfter,
         ], 429)->header('Retry-After', $retryAfter);
     }
-    
+
     /**
      * Add the rate limit headers to the given response.
      *

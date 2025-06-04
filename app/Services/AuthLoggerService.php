@@ -22,14 +22,14 @@ class AuthLoggerService
         $request = request();
         $agent = new Agent();
         $agent->setUserAgent($request->userAgent());
-        
+
         // Get useful information from Agent
         $deviceType = $this->getDeviceType($agent);
         $browser = $agent->browser();
         $browserVersion = $agent->version($browser);
         $platform = $agent->platform();
         $platformVersion = $agent->version($platform);
-        
+
         $agentInfo = [
             'browser' => $browser,
             'browser_version' => $browserVersion,
@@ -41,10 +41,10 @@ class AuthLoggerService
             'is_desktop' => $agent->isDesktop(),
             'is_robot' => $agent->isRobot(),
         ];
-        
+
         // Merge agent info with provided metadata
         $enhancedMetadata = array_merge($metadata, ['user_agent_details' => $agentInfo]);
-        
+
         AuthLog::create([
             'user_id' => $userId,
             'email' => $email,
@@ -54,7 +54,7 @@ class AuthLoggerService
             'metadata' => $enhancedMetadata,
         ]);
     }
-    
+
     /**
      * Get device type based on Agent detection
      *
@@ -72,10 +72,10 @@ class AuthLoggerService
         } elseif ($agent->isDesktop()) {
             return 'desktop';
         }
-        
+
         return 'unknown';
     }
-    
+
     /**
      * Log a successful login
      *
@@ -87,7 +87,7 @@ class AuthLoggerService
     {
         $this->log('login', $userId, $email);
     }
-    
+
     /**
      * Log a logout
      *
@@ -99,7 +99,7 @@ class AuthLoggerService
     {
         $this->log('logout', $userId, $email);
     }
-    
+
     /**
      * Log a password reset request
      *
@@ -110,7 +110,7 @@ class AuthLoggerService
     {
         $this->log('password-reset-request', null, $email);
     }
-    
+
     /**
      * Log a successful password reset
      *
@@ -122,7 +122,7 @@ class AuthLoggerService
     {
         $this->log('password-reset', $userId, $email);
     }
-    
+
     /**
      * Log a failed login attempt
      *

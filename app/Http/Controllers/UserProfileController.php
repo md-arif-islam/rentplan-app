@@ -10,17 +10,17 @@ use Illuminate\Http\Request;
 class UserProfileController extends Controller
 {
     protected $userProfileService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param UserProfileService $userProfileService
      */
     public function __construct(UserProfileService $userProfileService)
     {
         $this->userProfileService = $userProfileService;
     }
-    
+
     /**
      * Display a listing of the resource.
      */
@@ -90,7 +90,7 @@ class UserProfileController extends Controller
     {
         try {
             $profile = $this->userProfileService->updateProfile($id, $request->validated());
-            
+
             return response()->json([
                 'message' => 'Profile updated successfully',
                 'data' => $profile,

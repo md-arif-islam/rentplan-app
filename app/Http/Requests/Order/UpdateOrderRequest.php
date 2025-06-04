@@ -22,7 +22,7 @@ class UpdateOrderRequest extends FormRequest
     public function rules(): array
     {
         $id = $this->route('id');
-        
+
         return [
             'customer_id' => 'sometimes|exists:customers,id',
             'product_id' => 'sometimes|exists:products,id',

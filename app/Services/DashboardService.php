@@ -12,7 +12,7 @@ class DashboardService
 {
     /**
      * Get admin dashboard statistics
-     * 
+     *
      * @return array
      */
     public function getAdminDashboardStats(): array
@@ -20,9 +20,9 @@ class DashboardService
         $totalCompanies = Company::count();
         $activeCompanies = Company::whereJsonContains('plan->plan_status', 'active')->count();
         $totalUsers = User::count();
-        
+
         $recentCompanies = Company::latest()->take(5)->get();
-        
+
         return [
             'stats' => [
                 'totalCompanies' => $totalCompanies,
@@ -32,10 +32,10 @@ class DashboardService
             'recentCompanies' => $recentCompanies,
         ];
     }
-    
+
     /**
      * Get company dashboard statistics
-     * 
+     *
      * @param int $companyId
      * @return array
      */
@@ -46,21 +46,21 @@ class DashboardService
         $totalOrders = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })->count();
-        
+
         $activeOrders = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })
-        ->where('order_status', 'active')
-        ->count();
-        
+            ->where('order_status', 'active')
+            ->count();
+
         $recentOrders = Order::whereHas('customer', function ($q) use ($companyId) {
             $q->where('company_id', $companyId);
         })
-        ->with(['customer', 'product'])
-        ->latest()
-        ->take(5)
-        ->get();
-        
+            ->with(['customer', 'product'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return [
             'stats' => [
                 'totalCustomers' => $totalCustomers,

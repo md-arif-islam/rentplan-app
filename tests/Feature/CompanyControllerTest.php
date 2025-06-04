@@ -26,7 +26,7 @@ class CompanyControllerTest extends TestCase
             'name' => 'super_admin',
             'scope' => 'platform'
         ]);
-        
+
         $companyAdminRole = Role::create([
             'name' => 'company_admin',
             'scope' => 'company'

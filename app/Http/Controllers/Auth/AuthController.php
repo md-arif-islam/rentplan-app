@@ -9,16 +9,16 @@ use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Facades\Str;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
+
 
 class AuthController extends Controller
 {
     protected $authService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param AuthService $authService
      */
     public function __construct(AuthService $authService)
@@ -28,7 +28,7 @@ class AuthController extends Controller
 
     /**
      * Authenticate user login
-     * 
+     *
      * @param LoginRequest $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -36,23 +36,23 @@ class AuthController extends Controller
     {
         try {
             $result = $this->authService->attemptLogin(
-                $request->email, 
+                $request->email,
                 $request->password
             );
-            
+
             // Clear rate limiting for successful logins
             RateLimiter::clear($this->throttleKey($request->email));
             return response()->json($result, 200);
         } catch (\Exception $e) {
             // Increment rate limiting on failed attempts
             RateLimiter::hit($this->throttleKey($request->email));
-            
+
             return response()->json([
                 'message' => $e->getMessage(),
-            ], $e->getCode() ?: 401);
+            ],  402);
         }
     }
-    
+
     /**
      * Get the throttle key for the given email
      *
@@ -61,12 +61,12 @@ class AuthController extends Controller
      */
     private function throttleKey(string $email)
     {
-        return Str::transliterate(strtolower($email).'|'.request()->ip());
+        return Str::transliterate(strtolower($email) . '|' . request()->ip());
     }
 
     /**
      * Return authenticated user
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -77,83 +77,72 @@ class AuthController extends Controller
 
     /**
      * Logout user
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function logout()
     {
         $user = auth()->user();
-        auth()->logout(); if ($user) {
-        
-        return response()->json([   }
-            'message' => 'Successfully logged out',
-        ], 200);        return response()->json([
-    }
+
+        if ($user) {
+            $this->authService->logout($user);
+        }
+
+        return response()->json([
+            'message' => 'User logged out successfully',
         ], 200);
+    }
+
     /**
      * Send password reset link
-     * 
+     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function sendResetLinkEmail(Request $request)minate\Http\JsonResponse
+    public function sendResetLinkEmail(Request $request)
     {
-        $request->validate(['email' => 'required|email']);    public function sendResetLinkEmail(Request $request)
+        $request->validate(['email' => 'required|email']);
 
         $status = $this->authService->sendPasswordResetLink($request->email);
 
-        if ($status === Password::RESET_THROTTLED) {   $status = $this->authService->sendPasswordResetLink($request->email);
-            $key = 'password-reset:'.$request->email;
-             if ($status === Password::RESET_THROTTLED) {
-            return response()->json([rd-reset:'.$request->email;
-                'message' => 'Too many password reset attempts, please try again later.',     
-                'seconds_until_retry' => RateLimiter::availableIn($key),
-            ], 429);ord reset attempts, please try again later.',
-        }         'seconds_until_retry' => RateLimiter::availableIn($key),
+        if ($status === Password::RESET_THROTTLED) {
+            $key = 'password-reset:' . $request->email;
 
-        return $status === Password::RESET_LINK_SENT   }
+            return response()->json([
+                'message' => 'Too many password reset attempts, please try again later.',
+                'seconds_until_retry' => RateLimiter::availableIn($key),
+            ], 429);
+        }
+
+        return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => __('Password reset link sent')], 200)
             : response()->json(['error' => [__('Email could not be sent')]], 422);
-    }? response()->json(['message' => __('Password reset link sent')], 200)
-r' => [__('Email could not be sent')]], 422);
+    }
+
     /**
      * Reset user password
-     * 
+     *
      * @param ResetPasswordRequest $request
      * @return \Illuminate\Http\JsonResponse
-     */asswordRequest $request
-    public function resetPassword(ResetPasswordRequest $request)eturn \Illuminate\Http\JsonResponse
-    {*/
-        try {    public function resetPassword(ResetPasswordRequest $request)
+     */
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        try {
             $this->authService->resetPassword($request->email, $request->password);
-            
-            return response()->json([     $this->authService->resetPassword($request->email, $request->password);
+
+            return response()->json([
                 'message' => 'Password reset successfully',
-            ], 200);son([
-        } catch (\Exception $e) { successfully',
-            return response()->json([     ], 200);
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
                 'message' => $e->getMessage(),
-            ], 500);       return response()->json([
-        }getMessage(),
+            ], 500);
+        }
     }
 
     /**
      * Show reset password form
-     *    /**
-     * @param Request $request     * Show reset password form
-
-
-
-
-
-
-
-
-
-
-
-
-}    }        ], 200);            'email' => $request->email,            'token' => $token,        return response()->json([    {    public function showResetForm(Request $request, $token = null)     */     * @return \Illuminate\Http\JsonResponse     * @param string|null $token     * 
+     *
      * @param Request $request
      * @param string|null $token
      * @return \Illuminate\Http\JsonResponse

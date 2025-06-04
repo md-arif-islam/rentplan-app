@@ -24,10 +24,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
-            'company_id' => function() {
+            'company_id' => function () {
                 return Company::factory()->create()->id;
             },
-            'role_id' => function() {
+            'role_id' => function () {
                 return Role::where('name', 'company_admin')->first()->id;
             },
             'status' => 'active',
@@ -42,11 +42,11 @@ class UserFactory extends Factory
      */
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
-    
+
     /**
      * Configure the model to be a super admin.
      */
@@ -58,7 +58,7 @@ class UserFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Configure the model to be a company admin for an existing company.
      */

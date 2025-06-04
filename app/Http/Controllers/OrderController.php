@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
     protected $orderService;
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param OrderService $orderService
      */
     public function __construct(OrderService $orderService)
@@ -28,15 +28,15 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         $params = [
             'search' => $request->input('search'),
             'perPage' => $request->input('perPage', 10),
             'status' => $request->input('status'),
         ];
-        
+
         $orders = $this->orderService->getOrders($companyId, $params);
-        
+
         return response()->json($orders);
     }
 
@@ -47,11 +47,11 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             // Create order through service
             $order = $this->orderService->createOrder($request->validated(), $companyId);
-            
+
             return response()->json([
                 'message' => 'Order created successfully',
                 'data' => $order,
@@ -70,10 +70,10 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $order = $this->orderService->getOrder($id, $companyId);
-            
+
             return response()->json($order);
         } catch (\Exception $e) {
             return response()->json([
@@ -89,11 +89,11 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             // Update order through service
             $order = $this->orderService->updateOrder($id, $request->validated(), $companyId);
-            
+
             return response()->json([
                 'message' => 'Order updated successfully',
                 'data' => $order,
@@ -112,10 +112,10 @@ class OrderController extends Controller
     {
         $currentUser = auth()->user();
         $companyId = $currentUser->company_id;
-        
+
         try {
             $this->orderService->deleteOrder($id, $companyId);
-            
+
             return response()->json([
                 'message' => 'Order deleted successfully',
             ]);

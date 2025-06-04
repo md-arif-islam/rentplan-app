@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 class CompanyUserController extends Controller
 {
     protected $userService;
-    
+
     /**
      * Constructor
      * 

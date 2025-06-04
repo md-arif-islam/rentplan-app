@@ -17,13 +17,13 @@ class RoleSeeder extends Seeder
             'name' => 'super_admin',
             'scope' => 'platform',
         ]);
-        
+
         // Create company level roles
         Role::create([
             'name' => 'company_admin',
             'scope' => 'company',
         ]);
-        
+
         Role::create([
             'name' => 'company_user',
             'scope' => 'company',

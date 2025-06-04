@@ -30,73 +30,73 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepository::class, function ($app) {
             return new UserRepository();
         });
-        
+
         $this->app->bind(CompanyRepository::class, function ($app) {
             return new CompanyRepository();
         });
-        
+
         $this->app->bind(ProductRepository::class, function ($app) {
             return new ProductRepository();
         });
-        
+
         $this->app->bind(CustomerRepository::class, function ($app) {
             return new CustomerRepository();
         });
-        
+
         $this->app->bind(OrderRepository::class, function ($app) {
             return new OrderRepository();
         });
-        
+
         $this->app->bind(UserProfileRepository::class, function ($app) {
             return new UserProfileRepository();
         });
-        
+
         // Register services
         $this->app->bind(AuthLoggerService::class, function ($app) {
             return new AuthLoggerService();
         });
-        
+
         $this->app->bind(AuthService::class, function ($app) {
             return new AuthService(
                 $app->make(UserRepository::class),
                 $app->make(AuthLoggerService::class)
             );
         });
-        
+
         $this->app->bind(UserService::class, function ($app) {
             return new UserService(
                 $app->make(UserRepository::class)
             );
         });
-        
+
         $this->app->bind(UserProfileService::class, function ($app) {
             return new UserProfileService(
                 $app->make(UserProfileRepository::class)
             );
         });
-        
+
         $this->app->bind(CompanyService::class, function ($app) {
             return new CompanyService(
                 $app->make(CompanyRepository::class)
             );
         });
-        
+
         $this->app->bind(DashboardService::class, function ($app) {
             return new DashboardService();
         });
-        
+
         $this->app->bind(ProductService::class, function ($app) {
             return new ProductService(
                 $app->make(ProductRepository::class)
             );
         });
-        
+
         $this->app->bind(CustomerService::class, function ($app) {
             return new CustomerService(
                 $app->make(CustomerRepository::class)
             );
         });
-        
+
         $this->app->bind(OrderService::class, function ($app) {
             return new OrderService(
                 $app->make(OrderRepository::class),

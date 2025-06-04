@@ -26,7 +26,7 @@ class AuthControllerTest extends TestCase
             'password' => bcrypt('password'),
             'role_id' => Role::where('name', 'company_admin')->first()->id,
         ]);
-        
+
         UserProfile::factory()->create([
             'user_id' => $user->id,
             'name' => 'Test User',
@@ -51,11 +51,11 @@ class AuthControllerTest extends TestCase
             ->assertJson([
                 'message' => 'User logged in successfully'
             ]);
-            
+
         // Verify that the user profile is included
         $this->assertEquals('Test User', $response->json()['user']['user_profile']['name']);
     }
-    
+
     /** @test */
     public function user_cannot_login_with_invalid_credentials()
     {
@@ -74,7 +74,7 @@ class AuthControllerTest extends TestCase
                 'message' => 'Invalid credentials'
             ]);
     }
-    
+
     /** @test */
     public function user_can_logout()
     {
@@ -88,7 +88,7 @@ class AuthControllerTest extends TestCase
             ->assertJson([
                 'message' => 'User logged out successfully'
             ]);
-            
+
         // Verify token was deleted
         $this->assertDatabaseCount('personal_access_tokens', 0);
     }
@@ -108,25 +108,25 @@ class AuthControllerTest extends TestCase
             ->assertJson([
                 'message' => 'Password reset link sent'
             ]);
-            
+
         // Verify entry in the password_reset_tokens table
         $this->assertDatabaseHas('password_reset_tokens', [
             'email' => 'reset@example.com'
         ]);
     }
-    
+
     /** @test */
     public function rate_limiting_is_applied_to_login()
     {
         // Clear any existing rate limits
         $this->app->make(\Illuminate\Cache\RateLimiter::class)->clear('auth|test@example.com|127.0.0.1');
-        
+
         // Create user
         User::factory()->create([
             'email' => 'test@example.com',
             'password' => bcrypt('password'),
         ]);
-        
+
         // Make 5 failed login attempts to trigger rate limiting
         for ($i = 0; $i < 5; $i++) {
             $response = $this->postJson('/api/login', [
@@ -134,13 +134,13 @@ class AuthControllerTest extends TestCase
                 'password' => 'wrong-password'
             ]);
         }
-        
+
         // 6th attempt should be rate limited
         $response = $this->postJson('/api/login', [
             'email' => 'test@example.com',
             'password' => 'wrong-password'
         ]);
-        
+
         $response->assertStatus(429)
             ->assertJsonStructure([
                 'message',

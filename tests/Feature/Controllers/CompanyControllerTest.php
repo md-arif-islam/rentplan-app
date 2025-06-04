@@ -19,7 +19,7 @@ class CompanyControllerTest extends TestCase
     {
         parent::setUp();
         $this->seed(\Database\Seeders\RoleSeeder::class);
-        
+
         // Create a super admin user
         $this->user = User::factory()->create([
             'role_id' => Role::where('name', 'super_admin')->where('scope', 'platform')->first()->id,
@@ -30,12 +30,12 @@ class CompanyControllerTest extends TestCase
     public function super_admin_can_list_companies()
     {
         Sanctum::actingAs($this->user);
-        
+
         // Create some companies
         Company::factory()->count(5)->create();
-        
+
         $response = $this->getJson('/api/admin/companies');
-        
+
         $response->assertStatus(200)
             ->assertJsonCount(5, 'data')
             ->assertJsonStructure([
@@ -46,12 +46,12 @@ class CompanyControllerTest extends TestCase
                 'last_page',
             ]);
     }
-    
+
     /** @test */
     public function super_admin_can_create_company()
     {
         Sanctum::actingAs($this->user);
-        
+
         $data = [
             'name' => 'Test Company',
             'email' => 'company@example.com',
@@ -65,9 +65,9 @@ class CompanyControllerTest extends TestCase
                 'plan_expiry_date' => now()->addYear()->format('Y-m-d'),
             ],
         ];
-        
+
         $response = $this->postJson('/api/admin/companies', $data);
-        
+
         $response->assertStatus(201)
             ->assertJson([
                 'message' => 'Company created successfully',
@@ -76,26 +76,26 @@ class CompanyControllerTest extends TestCase
                     'email' => 'company@example.com',
                 ]
             ]);
-            
+
         // Verify company was created in database
         $this->assertDatabaseHas('companies', [
             'name' => 'Test Company',
             'email' => 'company@example.com',
         ]);
     }
-    
+
     /** @test */
     public function super_admin_can_view_company()
     {
         Sanctum::actingAs($this->user);
-        
+
         $company = Company::factory()->create([
             'name' => 'View Test Company',
             'email' => 'view@example.com',
         ]);
-        
+
         $response = $this->getJson("/api/admin/companies/{$company->id}");
-        
+
         $response->assertStatus(200)
             ->assertJson([
                 'id' => $company->id,
@@ -103,24 +103,24 @@ class CompanyControllerTest extends TestCase
                 'email' => 'view@example.com',
             ]);
     }
-    
+
     /** @test */
     public function super_admin_can_update_company()
     {
         Sanctum::actingAs($this->user);
-        
+
         $company = Company::factory()->create([
             'name' => 'Original Company',
             'email' => 'original@example.com',
         ]);
-        
+
         $data = [
             'name' => 'Updated Company',
             'email' => 'updated@example.com',
         ];
-        
+
         $response = $this->putJson("/api/admin/companies/{$company->id}", $data);
-        
+
         $response->assertStatus(200)
             ->assertJson([
                 'message' => 'Company updated successfully',
@@ -129,7 +129,7 @@ class CompanyControllerTest extends TestCase
                     'email' => 'updated@example.com',
                 ]
             ]);
-            
+
         // Verify company was updated in database
         $this->assertDatabaseHas('companies', [
             'id' => $company->id,
@@ -137,25 +137,25 @@ class CompanyControllerTest extends TestCase
             'email' => 'updated@example.com',
         ]);
     }
-    
+
     /** @test */
     public function super_admin_can_delete_company()
     {
         Sanctum::actingAs($this->user);
-        
+
         $company = Company::factory()->create();
-        
+
         $response = $this->deleteJson("/api/admin/companies/{$company->id}");
-        
+
         $response->assertStatus(200)
             ->assertJson([
                 'message' => 'Company deleted successfully',
             ]);
-            
+
         // Verify company was soft deleted
         $this->assertSoftDeleted($company);
     }
-    
+
     /** @test */
     public function company_admin_cannot_access_admin_routes()
     {
@@ -165,12 +165,12 @@ class CompanyControllerTest extends TestCase
             'role_id' => Role::where('name', 'company_admin')->where('scope', 'company')->first()->id,
             'company_id' => $company->id,
         ]);
-        
+
         Sanctum::actingAs($companyAdmin);
-        
+
         // Try to access admin companies endpoint
         $response = $this->getJson('/api/admin/companies');
-        
+
         $response->assertStatus(403)
             ->assertJson([
                 'message' => 'You do not have access to this resource'

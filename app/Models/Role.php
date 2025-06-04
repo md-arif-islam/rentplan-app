@@ -16,10 +16,10 @@ class Role extends Model
     {
         return $this->hasMany(User::class);
     }
-    
+
     /**
      * Get super admin role
-     * 
+     *
      * @return self|null
      */
     public static function superAdmin()
@@ -28,10 +28,10 @@ class Role extends Model
             ->where('scope', 'platform')
             ->first();
     }
-    
+
     /**
      * Get company admin role
-     * 
+     *
      * @return self|null
      */
     public static function companyAdmin()

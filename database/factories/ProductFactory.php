@@ -18,7 +18,7 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => function() {
+            'company_id' => function () {
                 return Company::factory()->create()->id;
             },
             'name' => $this->faker->words(3, true),
@@ -30,7 +30,7 @@ class ProductFactory extends Factory
             'woocommerce_product_id' => $this->faker->optional(0.3)->numberBetween(1000, 9999),
         ];
     }
-    
+
     /**
      * Configure the model as a variable product.
      */
@@ -43,7 +43,7 @@ class ProductFactory extends Factory
             ];
         });
     }
-    
+
     /**
      * Create a product for an existing company.
      */
