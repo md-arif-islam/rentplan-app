@@ -44,17 +44,26 @@ const LoginForm = () => {
                 // Use the message from the API response
                 throw new Error(response.error.data?.message || "Login failed");
             }
+
+            const userData = response.data.user;
             dispatch(
                 setUser({
-                    user: response.data.user,
+                    user: userData,
                     token: response.data.token,
                 })
             );
 
             toast.success("Login Successful");
 
-            // Navigate AFTER everything is set up
-            navigate("/admin/dashboard");
+            // Navigate based on user role
+            if (userData.role?.name === "super_admin") {
+                navigate("/admin/dashboard");
+            } else if (userData.role?.name === "company_admin") {
+                navigate("/company/dashboard");
+            } else {
+                // Default fallback
+                navigate("/");
+            }
         } catch (error) {
             toast.error(error.message);
         }

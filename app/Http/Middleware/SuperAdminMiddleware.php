@@ -18,8 +18,6 @@ class SuperAdminMiddleware
     {
         $user = auth()->user();
 
-        Log::info($user);
-
         if (
             $user &&
             $user->role &&
@@ -29,6 +27,6 @@ class SuperAdminMiddleware
             return $next($request);
         }
 
-        abort(403, 'Unauthorized');
+        return response()->json(['message' => 'You do not have access to this resource'], 403);
     }
 }

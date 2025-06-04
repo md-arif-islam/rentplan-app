@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserProfileController;
+use App\Http\Middleware\CompanyAdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
@@ -15,18 +16,33 @@ Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('
 Route::get('/user', [AuthController::class, 'authCheck']);
 
 
-// -------------------- Admin routes ----------------------
+// -------------------- Super Admin routes ----------------------
 Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/dashboard', [DashboardController::class, 'adminDashboard']);
 
     // Profiles
     Route::get('/profile/{id}', [UserProfileController::class, 'show']);
     Route::put('/profile/{id}', [UserProfileController::class, 'update']);
     Route::get('/profile/user/{userId}', [UserProfileController::class, 'showByUserId']);
+
+    // Add more admin-specific routes here
+});
+
+// -------------------- Company Admin routes ----------------------
+Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::class])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'companyDashboard']);
+
+    // Company admin profiles
+    Route::get('/profile/{id}', [UserProfileController::class, 'show']);
+    Route::put('/profile/{id}', [UserProfileController::class, 'update']);
+
+    // Add more company-specific routes here
 });
 
 // -------------------- Public routes ----------------------
-Route::prefix('public')->group(function () {});
+Route::prefix('public')->group(function () {
+    // Public routes here
+});
 
 Route::get('/clear', function () {
     \Illuminate\Support\Facades\Artisan::call('config:clear');

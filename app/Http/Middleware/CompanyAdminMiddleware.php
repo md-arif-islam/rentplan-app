@@ -17,10 +17,15 @@ class CompanyAdminMiddleware
     {
         $user = auth()->user();
 
-        if ($user && $user->role == 'company_admin') {
+        if (
+            $user &&
+            $user->role &&
+            $user->role->name === 'company_admin' &&
+            $user->role->scope === 'company'
+        ) {
             return $next($request);
         }
 
-        abort(403, 'Unauthorized');
+        return response()->json(['message' => 'You do not have access to this resource'], 403);
     }
 }
