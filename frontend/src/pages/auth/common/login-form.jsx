@@ -40,7 +40,9 @@ const LoginForm = () => {
             const response = await login(data);
 
             if (response?.error) {
-                throw new Error(response.error.data.message);
+                console.log("Login error response:", response.error);
+                // Use the message from the API response
+                throw new Error(response.error.data?.message || "Login failed");
             }
             dispatch(
                 setUser({
