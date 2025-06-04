@@ -86,4 +86,35 @@ class User extends Authenticatable
         // Update existing profile
         return $this->userProfile->update($profileData);
     }
+
+    /**
+     * Check if user has specific role
+     * 
+     * @param string $roleName
+     * @return bool
+     */
+    public function hasRole(string $roleName): bool
+    {
+        return $this->role && $this->role->name === $roleName;
+    }
+    
+    /**
+     * Check if user is a super admin
+     * 
+     * @return bool
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'super_admin' && $this->role->scope === 'platform';
+    }
+    
+    /**
+     * Check if user is a company admin
+     * 
+     * @return bool
+     */
+    public function isCompanyAdmin(): bool
+    {
+        return $this->role && $this->role->name === 'company_admin' && $this->role->scope === 'company';
+    }
 }

@@ -29,7 +29,7 @@ class UserProfileFactory extends Factory
             'user_id' => User::factory(),
             'name' => $this->faker->name(),
             'phone' => $this->faker->phoneNumber(),
-            'avatar' => $this->faker->imageUrl(200, 200, 'people'),
+            'avatar' => null,
         ];
     }
 }

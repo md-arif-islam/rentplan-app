@@ -3,49 +3,73 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use App\Notifications\CustomResetPasswordNotification;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
+    protected $authService;
+    
+    /**
+     * Constructor
+     * 
+     * @param AuthService $authService
+     */
+    public function __construct(AuthService $authService)
+    {
+        $this->authService = $authService;
+    }
 
+    /**
+     * Authenticate user login
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function login(Request $request)
     {
-
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->with(['userProfile'])->first();
-
-        if (!$user || !\Hash::check($request->password, $user->password)) {
+        try {
+            $result = $this->authService->attemptLogin(
+                $request->email, 
+                $request->password
+            );
+            
+            return response()->json($result, 200);
+        } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Invalid credentials',
-            ], 402);
+                'message' => $e->getMessage(),
+            ], $e->getCode() ?: 402);
         }
-        $token = $user->createToken($request->email)->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'user' => $user,
-            'message' => 'User logged in successfully',
-        ], 200);
     }
 
+    /**
+     * Return authenticated user
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function authCheck(Request $request)
     {
         return $request->user();
     }
 
+    /**
+     * Logout user
+     * 
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function logout()
     {
         $user = auth()->user();
 
         if ($user) {
-            $user->tokens()->delete();
+            $this->authService->logout($user);
         }
 
         return response()->json([
@@ -53,25 +77,29 @@ class AuthController extends Controller
         ], 200);
     }
 
+    /**
+     * Send reset password link
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function sendResetLinkEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
 
-        $user = User::whereEmail($request->email)->first();
-
-        $status = Password::sendResetLink(
-            $request->only('email'),
-            function ($user, $token) {
-                $url = env('FRONTEND_URL') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
-                $user->notify(new CustomResetPasswordNotification($token, $url));
-            }
-        );
+        $status = $this->authService->sendPasswordResetLink($request->email);
 
         return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => __('Password reset link sent')], 200)
             : response()->json(['error' => [__('Email could not be sent')]], 422);
     }
 
+    /**
+     * Reset user password
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -80,15 +108,26 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:8',
         ]);
 
-        $user = User::whereEmail($request->email)->first();
-        $user->password = bcrypt($request->password);
-        $user->save();
-
-        return response()->json([
-            'message' => 'Password reset successfully',
-        ], 200);
+        try {
+            $this->authService->resetPassword($request->email, $request->password);
+            
+            return response()->json([
+                'message' => 'Password reset successfully',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
+    /**
+     * Show reset password form
+     * 
+     * @param Request $request
+     * @param string|null $token
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function showResetForm(Request $request, $token = null)
     {
         return response()->json([

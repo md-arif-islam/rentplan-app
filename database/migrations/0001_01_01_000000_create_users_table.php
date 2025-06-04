@@ -10,12 +10,12 @@ return new class extends Migration {
      */
     public function up(): void
     {
-
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
             $table->enum('scope', ['platform', 'company'])->default('company');
             $table->timestamps();
+            $table->softDeletes(); // Added soft deletes for better record keeping
         });
 
         Schema::create('companies', function (Blueprint $table) {
@@ -44,6 +44,12 @@ return new class extends Migration {
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+            // Add status for user account management
+            $table->enum('status', ['active', 'inactive', 'suspended'])->default('active');
+            // Add flags for account management
+            $table->boolean('force_password_change')->default(false);
+            $table->timestamp('last_login_at')->nullable();
+            $table->string('last_login_ip')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -62,6 +68,18 @@ return new class extends Migration {
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+        
+        // Add an audit log table for keeping track of important auth events
+        Schema::create('auth_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('email')->nullable();
+            $table->string('action'); // login, logout, password-reset, etc.
+            $table->string('ip_address', 45)->nullable();
+            $table->text('user_agent')->nullable();
+            $table->json('metadata')->nullable(); // For additional data
+            $table->timestamps();
+        });
     }
 
     /**
@@ -69,6 +87,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        Schema::dropIfExists('auth_logs');
         Schema::dropIfExists('sessions');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('users');
