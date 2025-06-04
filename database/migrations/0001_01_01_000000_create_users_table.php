@@ -16,12 +16,21 @@ return new class extends Migration {
             $table->string('name')->unique();
             $table->enum('scope', ['platform', 'company'])->default('company');
             $table->timestamps();
-            $table->softDeletes();
         });
 
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->string('email')->unique()->index();
+            $table->string('logo')->nullable();
+            $table->string('phone')->nullable();
+            $table->string('website')->nullable();
+            $table->string('address_line_1')->nullable();
+            $table->string('address_line_2')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('postal_code')->nullable();
+            $table->string('country')->nullable();
             $table->json('plan')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -60,10 +69,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
-        Schema::dropIfExists('companies');
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
+        Schema::dropIfExists('companies');
+        Schema::dropIfExists('roles');
     }
 };

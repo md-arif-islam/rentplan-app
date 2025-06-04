@@ -141,3 +141,75 @@ roles {
 	scope enum(ENUM('platform', 'company'))
 }
 
+
+customers {
+	id bigint pk increments unique
+	first_name varchar(255) null
+	last_name varchar(255) null
+	company_id bigint > companies.id
+	woocommerce_customer_id bigint null unique
+	street varchar(255) null
+	postal_code varchar(20) null
+	house_number varchar(50) null
+	city varchar(100) null
+	country varchar(100) null
+	phone varchar(50) null
+	email varchar(255) null
+	date_of_birth date null
+	created_at timestamp null
+	updated_at timestamp null
+	deleted_at timestamp null
+}
+
+products {
+	id bigint pk increments unique
+	woocommerce_product_id bigint null unique
+	type integer
+	name varchar(255)
+	price decimal(10,2) null
+	image_url text null
+	specifications text null
+	stock int null
+	created_at timestamp null
+	updated_at timestamp null
+	deleted_at timestamp null
+}
+
+product_variations {
+	id bigint pk increments unique
+	product_id bigint > products.id
+	woocommerce_variation_id bigint null unique
+	variant_name varchar(255) null
+	sku varchar(100) null unique
+	price decimal(10,2) null
+	image_url text null
+	specifications text null
+	stock int null
+	attributes text null
+	created_at timestamp null
+	updated_at timestamp null
+	deleted_at timestamp null
+}
+
+orders {
+	id bigint pk increments unique
+	customer_id bigint > customers.id
+	woocommerce_order_id bigint null unique
+	start_date datetime null
+	end_date datetime null
+	order_status varchar(50) null
+	invoice_street varchar(255) null
+	invoice_postal_code varchar(20) null
+	invoice_house_number varchar(50) null
+	invoice_city varchar(100) null
+	invoice_country varchar(100) null
+	delivery_street varchar(255) null
+	delivery_postal_code varchar(20) null
+	delivery_house_number varchar(50) null
+	delivery_city varchar(100) null
+	delivery_country varchar(100) null
+	product_id int null > products.id
+	created_at timestamp null
+	updated_at timestamp null
+	deleted_at timestamp null
+}

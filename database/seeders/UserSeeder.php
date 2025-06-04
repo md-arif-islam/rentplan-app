@@ -13,16 +13,23 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-
+        // Create super admin with the first company
         User::factory()->withRole('super_admin')->create([
             'email' => 'admin@rentplan.nl',
+            'company_id' => 1,
+
         ]);
 
-        // Create 5 company admin users
-        for ($i = 1; $i <= 5; $i++) {
+        // Create company admin users for each company
+        $companies = Company::where('id', '>', 1)->get();
+
+        foreach ($companies as $company) {
             User::factory()
                 ->withRole('company_admin')
-                ->create();
+                ->create([
+                    'company_id' => $company->id,
+                    'email' => 'admin_' . $company->id . '@example.com',
+                ]);
         }
     }
 }

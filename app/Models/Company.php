@@ -11,8 +11,22 @@ class Company extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'name',
         'email',
+        'logo',
+        'phone',
+        'website',
+        'address_line_1',
+        'address_line_2',
+        'city',
+        'state',
+        'postal_code',
+        'country',
         'plan',
+    ];
+
+    protected $casts = [
+        'plan' => 'array',
     ];
 
     public function users()

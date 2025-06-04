@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Company;
-use App\Models\CompanyProfile;
 
 class CompanySeeder extends Seeder
 {
@@ -14,12 +13,13 @@ class CompanySeeder extends Seeder
      */
     public function run(): void
     {
-        $companies = Company::factory(5)->create();
+        // Create a default company for the super admin
+        Company::factory()->create([
+            'name' => 'RentPlan Admin',
+            'email' => 'admin@rentplan.nl',
+        ]);
 
-        foreach ($companies as $company) {
-            CompanyProfile::factory()->create([
-                'company_id' => $company->id,
-            ]);
-        }
+        // Create additional companies
+        Company::factory(4)->create();
     }
 }
