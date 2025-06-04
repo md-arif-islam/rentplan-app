@@ -8,12 +8,14 @@ import {
 import { setProfile, setUserRole } from "@/store/api/profile/profileSlice";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Profile = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const location = useLocation();
     const user = useSelector((state) => state.auth.user);
+    const storeProfile = useSelector((state) => state.profile.profile);
 
     // Determine which API endpoint to use based on user role
     const userRole = user?.role?.name || "";
@@ -53,6 +55,16 @@ const Profile = () => {
     const isLoading = isAdmin ? adminIsLoading : companyIsLoading;
     const error = isAdmin ? adminError : companyError;
     const refetch = isAdmin ? adminRefetch : companyRefetch;
+
+    // Force refetch when navigating back to profile page
+    useEffect(() => {
+        if (
+            location.pathname.includes("/profile") &&
+            !location.pathname.includes("/edit")
+        ) {
+            refetch();
+        }
+    }, [location, refetch]);
 
     useEffect(() => {
         if (data) {

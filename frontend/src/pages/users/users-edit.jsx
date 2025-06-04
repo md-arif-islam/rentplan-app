@@ -13,6 +13,9 @@ import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as yup from "yup";
+// Import the needed Redux hooks and actions
+import { updateProfile } from "@/store/api/profile/profileSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 // Schema for main form (without password)
 const mainSchema = yup.object().shape({
@@ -49,6 +52,8 @@ const mainSchema = yup.object().shape({
 const UserEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const dispatch = useDispatch(); // Add dispatch
+    const currentUser = useSelector((state) => state.auth.user); // Get current user
     const fileInputRef = useRef(null);
 
     const {
@@ -131,8 +136,24 @@ const UserEdit = () => {
                 id,
             };
 
-            await updateUser(dataToSubmit).unwrap();
+            const result = await updateUser(dataToSubmit).unwrap();
             toast.success("User updated successfully");
+
+            // Check if the updated user is the current logged in user
+            // If so, update the profile in Redux store
+            if (currentUser && currentUser.id === parseInt(id)) {
+                // Update profile information in the Redux store
+                dispatch(
+                    updateProfile({
+                        name: formData.name,
+                        phone: formData.phone,
+                        avatar:
+                            result?.data?.user_profile?.avatar ||
+                            formData.avatar,
+                    })
+                );
+            }
+
             navigate("/company/users");
         } catch (error) {
             console.error("Update failed", error);

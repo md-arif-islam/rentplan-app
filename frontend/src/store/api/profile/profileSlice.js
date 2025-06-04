@@ -28,11 +28,35 @@ export const profileSlice = createSlice({
             }
         },
         updateProfile: (state, action) => {
-            state.profile = { ...state.profile, ...action.payload };
-            try {
-                localStorage.setItem("profile", JSON.stringify(state.profile));
-            } catch (error) {
-                console.error("Error updating profile in localStorage:", error);
+            // Only update if profile exists
+            if (state.profile) {
+                state.profile = { ...state.profile, ...action.payload };
+
+                // Also update the user_profile or userProfile property if it exists
+                if (state.profile.user_profile) {
+                    state.profile.user_profile = {
+                        ...state.profile.user_profile,
+                        ...action.payload,
+                    };
+                }
+                if (state.profile.userProfile) {
+                    state.profile.userProfile = {
+                        ...state.profile.userProfile,
+                        ...action.payload,
+                    };
+                }
+
+                try {
+                    localStorage.setItem(
+                        "profile",
+                        JSON.stringify(state.profile)
+                    );
+                } catch (error) {
+                    console.error(
+                        "Error updating profile in localStorage:",
+                        error
+                    );
+                }
             }
         },
         setUserRole: (state, action) => {
