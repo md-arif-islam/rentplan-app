@@ -11,6 +11,11 @@ export const menuItems = [
     },
 
     {
+        isHeadr: true,
+        title: "Management",
+    },
+
+    {
         title: "Customers",
         icon: "heroicons-outline:user-group",
         link: "customers",
@@ -20,6 +25,12 @@ export const menuItems = [
         title: "Products",
         icon: "heroicons-outline:cube",
         link: "products",
+    },
+
+    {
+        title: "Orders",
+        icon: "heroicons-outline:shopping-cart",
+        link: "orders",
     },
 
     {
