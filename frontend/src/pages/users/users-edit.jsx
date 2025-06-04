@@ -8,23 +8,19 @@ import {
     useUpdateCompanyUserMutation,
 } from "@/store/api/users/usersApiSlice";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import * as yup from "yup";
 
-const schema = yup.object().shape({
+// Schema for main form (without password)
+const mainSchema = yup.object().shape({
     email: yup
         .string()
         .required("Email is required")
         .email("Please enter a valid email address")
         .max(255, "Email cannot exceed 255 characters"),
-    password: yup
-        .string()
-        .nullable()
-        .transform((value) => (value ? value : null))
-        .min(8, "Password must be at least 8 characters"),
     name: yup
         .string()
         .required("Name is required")
@@ -35,19 +31,35 @@ const schema = yup.object().shape({
         .max(20, "Phone number cannot exceed 20 characters"),
 });
 
+// Separate schema for password update
+const passwordSchema = yup.object().shape({
+    password: yup
+        .string()
+        .required("Password is required")
+        .min(8, "Password must be at least 8 characters"),
+    password_confirmation: yup
+        .string()
+        .required("Please confirm your password")
+        .oneOf([yup.ref("password"), null], "Passwords must match"),
+});
+
 const UserEdit = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const fileInputRef = useRef(null);
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+
     const {
         data: user,
         isLoading: userLoading,
         isError,
         error,
     } = useGetCompanyUserQuery(id);
+
     const [updateUser, { isLoading: isUpdating }] =
         useUpdateCompanyUserMutation();
 
+    // Main form for user details
     const {
         register,
         handleSubmit,
@@ -57,14 +69,31 @@ const UserEdit = () => {
         watch,
         reset,
     } = useForm({
-        resolver: yupResolver(schema),
+        resolver: yupResolver(mainSchema),
         mode: "onChange",
         defaultValues: {
             email: "",
-            password: "",
             name: "",
             phone: "",
             avatar: null,
+        },
+    });
+
+    // Separate form for password update
+    const {
+        register: registerPassword,
+        handleSubmit: handleSubmitPassword,
+        formState: {
+            errors: passwordErrors,
+            isSubmitting: isPasswordSubmitting,
+        },
+        reset: resetPassword,
+    } = useForm({
+        resolver: yupResolver(passwordSchema),
+        mode: "onChange",
+        defaultValues: {
+            password: "",
+            password_confirmation: "",
         },
     });
 
@@ -76,10 +105,13 @@ const UserEdit = () => {
             // Reset the form with values from the API
             reset({
                 email: user.email || "",
-                password: "", // Don't populate password for security
-                name: user.user_profile?.name || "", // Check both possible paths
-                phone: user.user_profile?.phone || "",
-                avatar: user.user_profile?.avatar || null,
+                name: user.user_profile?.name || user.userProfile?.name || "",
+                phone:
+                    user.user_profile?.phone || user.userProfile?.phone || "",
+                avatar:
+                    user.user_profile?.avatar ||
+                    user.userProfile?.avatar ||
+                    null,
             });
         }
     }, [user, reset]);
@@ -99,9 +131,10 @@ const UserEdit = () => {
         fileInputRef.current.click();
     };
 
+    // Handler for main form submission
     const onSubmit = async (formData) => {
         try {
-            console.log("Submitting form with data:", formData); // Debug log
+            console.log("Submitting form with data:", formData);
 
             // Keep the user's existing role_id
             const dataToSubmit = {
@@ -127,6 +160,51 @@ const UserEdit = () => {
                 );
             } else {
                 toast.error(error?.data?.message || "Failed to update user");
+            }
+        }
+    };
+
+    // Handler for password form submission
+    const onPasswordSubmit = async (passwordData) => {
+        try {
+            console.log("Submitting password update");
+
+            // Submit only password fields along with ID
+            const dataToSubmit = {
+                ...passwordData,
+                role_id: user.role_id,
+                id,
+                // Include required fields from main form to satisfy validation
+                email: user.email,
+                name: user.user_profile?.name || user.userProfile?.name || "",
+            };
+
+            await updateUser(dataToSubmit).unwrap();
+            toast.success("Password updated successfully");
+            setShowPasswordForm(false);
+            resetPassword();
+        } catch (error) {
+            console.error("Password update failed", error);
+
+            if (error?.data?.errors) {
+                Object.entries(error.data.errors).forEach(
+                    ([field, messages]) => {
+                        if (field.includes("password")) {
+                            const formField =
+                                field === "password_confirmation"
+                                    ? field
+                                    : "password";
+                            setError(formField, {
+                                type: "manual",
+                                message: messages[0],
+                            });
+                        }
+                    }
+                );
+            } else {
+                toast.error(
+                    error?.data?.message || "Failed to update password"
+                );
             }
         }
     };
@@ -194,6 +272,7 @@ const UserEdit = () => {
                 </div>
             </div>
 
+            {/* Main Form */}
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Card title="User Information">
                     <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
@@ -204,7 +283,7 @@ const UserEdit = () => {
                             register={register}
                             name="name"
                             error={errors.name}
-                            defaultValue={currentValues.name} // Add the defaultValue
+                            defaultValue={currentValues.name}
                         />
                         <Textinput
                             label="Email *"
@@ -213,15 +292,7 @@ const UserEdit = () => {
                             register={register}
                             name="email"
                             error={errors.email}
-                            defaultValue={currentValues.email} // Add the defaultValue
-                        />
-                        <Textinput
-                            label="Password"
-                            type="password"
-                            placeholder="Leave blank to keep current password"
-                            register={register}
-                            name="password"
-                            error={errors.password}
+                            defaultValue={currentValues.email}
                         />
                         <Textinput
                             label="Phone"
@@ -230,7 +301,7 @@ const UserEdit = () => {
                             register={register}
                             name="phone"
                             error={errors.phone}
-                            defaultValue={currentValues.phone} // Add the defaultValue
+                            defaultValue={currentValues.phone}
                         />
                     </div>
                 </Card>
@@ -282,16 +353,70 @@ const UserEdit = () => {
                         className="btn-outline-dark"
                         onClick={() => navigate("/company/users")}
                     />
-                    <Button
-                        type="submit"
-                        icon="heroicons-outline:save"
-                        text="Update User"
-                        className="btn-dark"
-                        isLoading={isUpdating || isSubmitting}
-                        disabled={isUpdating || isSubmitting}
-                    />
+                    <div className="flex space-x-3">
+                        <Button
+                            type="button"
+                            icon="heroicons-outline:key"
+                            text={
+                                showPasswordForm
+                                    ? "Hide Password Form"
+                                    : "Change Password"
+                            }
+                            className="btn-outline-warning"
+                            onClick={() =>
+                                setShowPasswordForm(!showPasswordForm)
+                            }
+                        />
+                        <Button
+                            type="submit"
+                            icon="heroicons-outline:save"
+                            text="Update User"
+                            className="btn-dark"
+                            isLoading={isUpdating || isSubmitting}
+                            disabled={isUpdating || isSubmitting}
+                        />
+                    </div>
                 </div>
             </form>
+
+            {/* Password Form (conditionally shown) */}
+            {showPasswordForm && (
+                <form onSubmit={handleSubmitPassword(onPasswordSubmit)}>
+                    <Card
+                        title="Change Password"
+                        className="mt-5 border-2 border-warning-300"
+                    >
+                        <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
+                            <Textinput
+                                label="New Password *"
+                                type="password"
+                                placeholder="Enter new password"
+                                register={registerPassword}
+                                name="password"
+                                error={passwordErrors.password}
+                            />
+                            <Textinput
+                                label="Confirm New Password *"
+                                type="password"
+                                placeholder="Confirm new password"
+                                register={registerPassword}
+                                name="password_confirmation"
+                                error={passwordErrors.password_confirmation}
+                            />
+                        </div>
+                        <div className="mt-5 flex justify-end">
+                            <Button
+                                type="submit"
+                                icon="heroicons-outline:key"
+                                text="Update Password"
+                                className="btn-warning"
+                                isLoading={isUpdating || isPasswordSubmitting}
+                                disabled={isUpdating || isPasswordSubmitting}
+                            />
+                        </div>
+                    </Card>
+                </form>
+            )}
         </div>
     );
 };

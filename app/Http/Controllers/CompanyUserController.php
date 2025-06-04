@@ -59,7 +59,8 @@ class CompanyUserController extends Controller
             // Validate user data
             $validator = Validator::make($request->all(), [
                 'email' => 'required|email|unique:users,email|max:255',
-                'password' => 'required|min:8',
+                'password' => 'required|min:8|confirmed',
+                'password_confirmation' => 'required',
                 'name' => 'required|string|max:255',
                 'phone' => 'nullable|string|max:20',
                 'avatar' => 'nullable|string',
@@ -160,14 +161,22 @@ class CompanyUserController extends Controller
         DB::beginTransaction();
 
         try {
-            // Validate user data
-            $validator = Validator::make($request->all(), [
+            // Prepare validation rules
+            $rules = [
                 'email' => 'required|email|max:255|unique:users,email,' . $id,
-                'password' => 'nullable|min:8',
                 'name' => 'required|string|max:255',
                 'phone' => 'nullable|string|max:20',
                 'avatar' => 'nullable|string',
-            ]);
+            ];
+
+            // Add password validation rules only if password is being updated
+            if ($request->filled('password')) {
+                $rules['password'] = 'min:8|confirmed';
+                $rules['password_confirmation'] = 'required';
+            }
+
+            // Validate user data
+            $validator = Validator::make($request->all(), $rules);
 
             if ($validator->fails()) {
                 return response()->json([

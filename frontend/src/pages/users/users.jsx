@@ -73,14 +73,17 @@ function Users({ title = "Team Members" }) {
         () => [
             {
                 Header: "Name",
-                accessor: (row) => row.userProfile?.name || row.user_profile?.name || "—",
+                accessor: (row) =>
+                    row.userProfile?.name || row.user_profile?.name || "—",
                 Cell: ({ cell: { value }, row }) => (
                     <div className="flex items-center">
                         <div className="h-10 w-10 rounded-full overflow-hidden mr-3">
-                            {(row.original.userProfile?.avatar || row.original.user_profile?.avatar) ? (
+                            {row.original.userProfile?.avatar ||
+                            row.original.user_profile?.avatar ? (
                                 <img
                                     src={`${import.meta.env.VITE_API_URL}/${
-                                        row.original.userProfile?.avatar || row.original.user_profile?.avatar
+                                        row.original.userProfile?.avatar ||
+                                        row.original.user_profile?.avatar
                                     }`}
                                     alt={value}
                                     className="w-full h-full object-cover"
@@ -111,7 +114,8 @@ function Users({ title = "Team Members" }) {
             },
             {
                 Header: "Phone",
-                accessor: (row) => row.userProfile?.phone || row.user_profile?.phone || "—",
+                accessor: (row) =>
+                    row.userProfile?.phone || row.user_profile?.phone || "—",
                 Cell: ({ cell: { value } }) => <span>{value}</span>,
             },
             {
@@ -187,9 +191,11 @@ function Users({ title = "Team Members" }) {
     // Delete modal content - update to handle both userProfile and user_profile
     const getUserName = () => {
         if (!selectedUser) return "";
-        return selectedUser.userProfile?.name || 
-               selectedUser.user_profile?.name || 
-               selectedUser.email;
+        return (
+            selectedUser.userProfile?.name ||
+            selectedUser.user_profile?.name ||
+            selectedUser.email
+        );
     };
 
     useEffect(() => {
@@ -256,8 +262,8 @@ function Users({ title = "Team Members" }) {
                     {selectedUser ? (
                         <>
                             Are you sure you want to delete{" "}
-                            <strong>{getUserName()}</strong>? This action
-                            cannot be undone.
+                            <strong>{getUserName()}</strong>? This action cannot
+                            be undone.
                         </>
                     ) : (
                         "Are you sure you want to delete this user? This action cannot be undone."

@@ -20,6 +20,10 @@ const schema = yup.object().shape({
         .string()
         .required("Password is required")
         .min(8, "Password must be at least 8 characters"),
+    password_confirmation: yup
+        .string()
+        .required("Please confirm your password")
+        .oneOf([yup.ref("password"), null], "Passwords must match"),
     name: yup
         .string()
         .required("Name is required")
@@ -48,6 +52,7 @@ const UserCreate = () => {
         defaultValues: {
             email: "",
             password: "",
+            password_confirmation: "",
             name: "",
             phone: "",
             avatar: null,
@@ -135,6 +140,19 @@ const UserCreate = () => {
                             error={errors.email}
                         />
                         <Textinput
+                            label="Phone"
+                            type="text"
+                            placeholder="Enter phone number"
+                            register={register}
+                            name="phone"
+                            error={errors.phone}
+                        />
+                    </div>
+                </Card>
+
+                <Card title="Security" className="mt-5">
+                    <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
+                        <Textinput
                             label="Password *"
                             type="password"
                             placeholder="Enter password"
@@ -143,12 +161,12 @@ const UserCreate = () => {
                             error={errors.password}
                         />
                         <Textinput
-                            label="Phone"
-                            type="text"
-                            placeholder="Enter phone number"
+                            label="Confirm Password *"
+                            type="password"
+                            placeholder="Confirm password"
                             register={register}
-                            name="phone"
-                            error={errors.phone}
+                            name="password_confirmation"
+                            error={errors.password_confirmation}
                         />
                     </div>
                 </Card>
