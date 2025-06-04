@@ -11,6 +11,12 @@ export const menuItems = [
     },
 
     {
+        title: "Customers",
+        icon: "heroicons-outline:user-group",
+        link: "customers",
+    },
+
+    {
         isHeadr: true,
         title: "Settings",
     },

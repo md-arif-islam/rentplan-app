@@ -24,6 +24,13 @@ const UsersShow = lazy(() => import("./pages/users/users-show"));
 const UsersCreate = lazy(() => import("./pages/users/users-create"));
 const UsersEdit = lazy(() => import("./pages/users/users-edit"));
 
+const Customers = lazy(() => import("./pages/customers/customers"));
+const CustomersShow = lazy(() => import("./pages/customers/customers-show"));
+const CustomersCreate = lazy(() =>
+    import("./pages/customers/customers-create")
+);
+const CustomersEdit = lazy(() => import("./pages/customers/customers-edit"));
+
 const Error = lazy(() => import("./pages/404"));
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -117,11 +124,23 @@ function App() {
                     <Route path="profile" element={<Profile />} />
                     <Route path="profile/:id/edit" element={<ProfileEdit />} />
 
-                    {/* Add user management routes */}
+                    {/* User management routes */}
                     <Route path="users" element={<Users />} />
                     <Route path="users/create" element={<UsersCreate />} />
                     <Route path="users/:id" element={<UsersShow />} />
                     <Route path="users/:id/edit" element={<UsersEdit />} />
+
+                    {/* Customer management routes */}
+                    <Route path="customers" element={<Customers />} />
+                    <Route
+                        path="customers/create"
+                        element={<CustomersCreate />}
+                    />
+                    <Route path="customers/:id" element={<CustomersShow />} />
+                    <Route
+                        path="customers/:id/edit"
+                        element={<CustomersEdit />}
+                    />
 
                     <Route path="*" element={<Navigate to="/404" />} />
                 </Route>

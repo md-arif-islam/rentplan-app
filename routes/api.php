@@ -1,10 +1,11 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\CompanyUserController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserProfileController;
 use App\Http\Middleware\CompanyAdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,13 @@ Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::cl
     Route::put('/users/{id}', [CompanyUserController::class, 'update']);
     Route::delete('/users/{id}', [CompanyUserController::class, 'destroy']);
     Route::get('/roles', [CompanyUserController::class, 'getRoles']);
+
+    // Customer management routes
+    Route::get('/customers', [CustomerController::class, 'index']);
+    Route::post('/customers', [CustomerController::class, 'store']);
+    Route::get('/customers/{id}', [CustomerController::class, 'show']);
+    Route::put('/customers/{id}', [CustomerController::class, 'update']);
+    Route::delete('/customers/{id}', [CustomerController::class, 'destroy']);
 
     // Add more company-specific routes here
 });
