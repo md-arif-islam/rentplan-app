@@ -115,14 +115,21 @@ function Products({ title = "Products" }) {
             {
                 Header: "Type",
                 accessor: "type",
-                Cell: ({ cell: { value } }) => (
-                    <Badge
-                        label={value === 0 ? "Simple" : "Variable"}
-                        className={
-                            value === 0 ? "bg-success-500" : "bg-info-500"
-                        }
-                    />
-                ),
+                Cell: (row) => {
+                    return (
+                        <span className="block w-full">
+                            <span
+                                className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] text-white ${
+                                    row?.cell?.value === 0
+                                        ? "bg-success-500"
+                                        : "bg-primary-500"
+                                }`}
+                            >
+                                {row?.cell?.value === 0 ? "Simple" : "Variable"}
+                            </span>
+                        </span>
+                    );
+                },
             },
             {
                 Header: "Price",

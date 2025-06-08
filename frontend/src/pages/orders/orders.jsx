@@ -85,22 +85,6 @@ function Orders({ title = "Orders" }) {
         });
     };
 
-    // Get status badge color
-    const getStatusColor = (status) => {
-        switch (status?.toLowerCase()) {
-            case "completed":
-                return "bg-success-500";
-            case "processing":
-                return "bg-info-500";
-            case "pending":
-                return "bg-warning-500";
-            case "cancelled":
-                return "bg-danger-500";
-            default:
-                return "bg-slate-500";
-        }
-    };
-
     // Table Configuration
     const columns = useMemo(
         () => [
@@ -134,12 +118,55 @@ function Orders({ title = "Orders" }) {
             {
                 Header: "Status",
                 accessor: "order_status",
-                Cell: ({ cell: { value } }) => (
-                    <Badge
-                        label={value || "Unknown"}
-                        className={getStatusColor(value)}
-                    />
-                ),
+                Cell: (row) => {
+                    return (
+                        <span className="block w-full">
+                            <span
+                                className={`inline-block px-3 min-w-[90px] text-center mx-auto py-1 rounded-[999px] text-white ${
+                                    row?.cell?.value === "completed"
+                                        ? "bg-success-500"
+                                        : ""
+                                } 
+                                ${
+                                    row?.cell?.value === "active"
+                                        ? "bg-info-500"
+                                        : ""
+                                }
+                                ${
+                                    row?.cell?.value === "pending"
+                                        ? "bg-warning-500"
+                                        : ""
+                                }
+                                ${
+                                    row?.cell?.value === "processing"
+                                        ? "bg-primary-500"
+                                        : ""
+                                }
+                                ${
+                                    row?.cell?.value === "cancelled" ||
+                                    row?.cell?.value === "expired"
+                                        ? "bg-danger-500"
+                                        : ""
+                                }
+                                ${
+                                    ![
+                                        "completed",
+                                        "active",
+                                        "pending",
+                                        "processing",
+                                        "cancelled",
+                                        "expired",
+                                    ].includes(row?.cell?.value)
+                                        ? "bg-slate-500"
+                                        : ""
+                                }
+                                `}
+                            >
+                                {row?.cell?.value || "Unknown"}
+                            </span>
+                        </span>
+                    );
+                },
             },
             {
                 Header: "Action",

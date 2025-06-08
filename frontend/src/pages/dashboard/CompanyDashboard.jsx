@@ -85,24 +85,24 @@ const CompanyDashboard = () => {
                     </div>
                     <div className="mt-4 md:mt-0 flex items-center">
                         <span
-                            className={`inline-block rounded-full px-3 py-1 text-sm font-medium mr-3 ${
+                            className={`inline-block rounded-full px-3 py-1 text-sm font-medium text-white mr-3 ${
                                 company.planStatus === "active"
-                                    ? "bg-success-500 text-white"
+                                    ? "bg-success-500"
                                     : company.planStatus === "trial"
-                                    ? "bg-warning-500 text-white"
-                                    : "bg-danger-500 text-white"
+                                    ? "bg-warning-500"
+                                    : "bg-danger-500"
                             }`}
                         >
                             {company.planStatus.toUpperCase()}
                         </span>
                         {company.daysLeft > 0 && (
                             <span
-                                className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${
+                                className={`inline-block rounded-full px-3 py-1 text-sm font-medium text-white ${
                                     company.daysLeft < 7
-                                        ? "bg-danger-500/10 text-danger-500"
+                                        ? "bg-danger-500"
                                         : company.daysLeft < 15
-                                        ? "bg-warning-500/10 text-warning-500"
-                                        : "bg-success-500/10 text-success-500"
+                                        ? "bg-warning-500"
+                                        : "bg-success-500"
                                 }`}
                             >
                                 {company.daysLeft} days left
@@ -362,12 +362,12 @@ const CompanyDashboard = () => {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span
-                                                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                                                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium text-white ${
                                                         item.days_left < 3
-                                                            ? "bg-danger-500 text-white"
+                                                            ? "bg-danger-500"
                                                             : item.days_left < 7
-                                                            ? "bg-warning-500 text-white"
-                                                            : "bg-info-500 text-white"
+                                                            ? "bg-warning-500"
+                                                            : "bg-info-500"
                                                     }`}
                                                 >
                                                     {Math.floor(item.days_left)}{" "}

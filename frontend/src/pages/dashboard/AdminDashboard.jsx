@@ -326,13 +326,13 @@ const AdminDashboard = () => {
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span
-                                                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium ${
+                                                    className={`inline-block rounded-full px-2 py-1 text-xs font-medium text-white ${
                                                         item.days_left < 7
-                                                            ? "bg-danger-500 text-white"
+                                                            ? "bg-danger-500"
                                                             : item.days_left <
                                                               15
-                                                            ? "bg-warning-500 text-white"
-                                                            : "bg-info-500 text-white"
+                                                            ? "bg-warning-500"
+                                                            : "bg-info-500"
                                                     }`}
                                                 >
                                                     {Math.floor(item.days_left)}{" "}
