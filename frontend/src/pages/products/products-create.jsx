@@ -33,13 +33,15 @@ const schema = yup.object().shape({
                         isNaN(value) || value === "" ? null : value
                     )
                     .required("Price is required for simple products")
+                    .typeError("Price must be a valid number")
                     .min(0, "Price cannot be negative"),
             otherwise: () => yup.number().nullable(),
         }),
     stock: yup
         .number()
         .nullable()
-        .transform((value) => (isNaN(value) || value === "" ? null : value)),
+        .transform((value) => (isNaN(value) || value === "" ? null : value))
+        .typeError("Stock must be a valid number or empty"),
     specifications: yup.string().nullable(),
     woocommerce_product_id: yup
         .number()
@@ -203,10 +205,14 @@ const ProductCreate = () => {
             // Ensure numeric values are properly converted
             if (formData.type === 0) {
                 // Simple product
-                formData.price =
-                    formData.price === null || formData.price === ""
-                        ? null
-                        : Number(formData.price);
+                if (formData.price === null || formData.price === "") {
+                    setError("price", {
+                        type: "manual",
+                        message: "Price is required for simple products",
+                    });
+                    return; // Stop submission if price is missing
+                }
+                formData.price = Number(formData.price);
                 formData.stock =
                     formData.stock === null || formData.stock === ""
                         ? null
@@ -333,15 +339,28 @@ const ProductCreate = () => {
 
                     {productType === 0 && (
                         <div className="grid lg:grid-cols-2 md:grid-cols-2 grid-cols-1 gap-5">
-                            <Textinput
-                                label="Price *"
-                                type="number"
-                                step="0.01"
-                                placeholder="Enter price"
-                                register={register}
-                                name="price"
-                                error={errors.price}
-                            />
+                            <div>
+                                <Textinput
+                                    label="Price *"
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="Enter price"
+                                    register={register}
+                                    name="price"
+                                    error={errors.price}
+                                />
+                                {errors.price &&
+                                    errors.price.type === "typeError" && (
+                                        <div className="text-danger-500 text-sm mt-1">
+                                            Please enter a valid price
+                                        </div>
+                                    )}
+                                {!errors.price && productType === 0 && (
+                                    <div className="text-xs text-slate-500 mt-1">
+                                        Required for simple products
+                                    </div>
+                                )}
+                            </div>
                             <Textinput
                                 label="Stock"
                                 type="number"

@@ -17,8 +17,20 @@ import { toast } from "react-toastify";
 import * as yup from "yup";
 
 const schema = yup.object().shape({
-    customer_id: yup.number().required("Customer is required"),
-    product_id: yup.number().required("Product is required"),
+    customer_id: yup
+        .number()
+        .transform((value) =>
+            isNaN(value) || value === "" ? undefined : value
+        )
+        .required("Customer is required")
+        .typeError("Please select a customer"),
+    product_id: yup
+        .number()
+        .transform((value) =>
+            isNaN(value) || value === "" ? undefined : value
+        )
+        .required("Product is required")
+        .typeError("Please select a product"),
     start_date: yup.date().required("Start date is required"),
     end_date: yup
         .date()
@@ -176,6 +188,20 @@ const OrderEdit = () => {
 
     const onSubmit = async (data) => {
         try {
+            // Validate customer_id and product_id again before submission
+            if (!data.customer_id || isNaN(Number(data.customer_id))) {
+                toast.error("Please select a valid customer");
+                return;
+            }
+            if (!data.product_id || isNaN(Number(data.product_id))) {
+                toast.error("Please select a valid product");
+                return;
+            }
+
+            // Ensure customer_id and product_id are numbers
+            data.customer_id = Number(data.customer_id);
+            data.product_id = Number(data.product_id);
+
             await updateOrder({
                 id,
                 ...data,
@@ -269,15 +295,21 @@ const OrderEdit = () => {
                             <Select
                                 options={customerOptions}
                                 value={watch("customer_id")}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                    const value = e.target.value;
                                     setValue(
                                         "customer_id",
-                                        Number(e.target.value)
-                                    )
-                                }
+                                        value ? Number(value) : ""
+                                    );
+                                }}
                                 error={errors.customer_id}
                                 noOptionsMessage={() => "No customers found"}
                             />
+                            {errors.customer_id && (
+                                <div className="text-danger-500 text-sm mt-1">
+                                    {errors.customer_id.message}
+                                </div>
+                            )}
                         </div>
 
                         {/* Product Selection */}
@@ -286,15 +318,21 @@ const OrderEdit = () => {
                             <Select
                                 options={productOptions}
                                 value={watch("product_id")}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                    const value = e.target.value;
                                     setValue(
                                         "product_id",
-                                        Number(e.target.value)
-                                    )
-                                }
+                                        value ? Number(value) : ""
+                                    );
+                                }}
                                 error={errors.product_id}
                                 noOptionsMessage={() => "No products found"}
                             />
+                            {errors.product_id && (
+                                <div className="text-danger-500 text-sm mt-1">
+                                    {errors.product_id.message}
+                                </div>
+                            )}
                         </div>
 
                         {/* Start & End Dates */}
@@ -304,6 +342,7 @@ const OrderEdit = () => {
                             register={register}
                             name="start_date"
                             error={errors.start_date}
+                            placeholder="Select start date"
                         />
                         <Textinput
                             label="End Date *"
@@ -311,6 +350,7 @@ const OrderEdit = () => {
                             register={register}
                             name="end_date"
                             error={errors.end_date}
+                            placeholder="Select end date"
                         />
 
                         {/* Order Status */}
@@ -333,6 +373,7 @@ const OrderEdit = () => {
                             register={register}
                             name="woocommerce_order_id"
                             error={errors.woocommerce_order_id}
+                            placeholder="Enter WooCommerce ID if applicable"
                         />
                     </div>
                 </Card>
@@ -344,30 +385,35 @@ const OrderEdit = () => {
                             register={register}
                             name="invoice_street"
                             error={errors.invoice_street}
+                            placeholder="Enter street name"
                         />
                         <Textinput
                             label="House Number"
                             register={register}
                             name="invoice_house_number"
                             error={errors.invoice_house_number}
+                            placeholder="Enter house number"
                         />
                         <Textinput
                             label="Postal Code"
                             register={register}
                             name="invoice_postal_code"
                             error={errors.invoice_postal_code}
+                            placeholder="Enter postal code"
                         />
                         <Textinput
                             label="City"
                             register={register}
                             name="invoice_city"
                             error={errors.invoice_city}
+                            placeholder="Enter city"
                         />
                         <Textinput
                             label="Country"
                             register={register}
                             name="invoice_country"
                             error={errors.invoice_country}
+                            placeholder="Enter country"
                         />
                     </div>
                 </Card>
@@ -396,6 +442,7 @@ const OrderEdit = () => {
                             name="delivery_street"
                             error={errors.delivery_street}
                             disabled={useDeliveryAddress}
+                            placeholder="Enter street name"
                         />
                         <Textinput
                             label="House Number"
@@ -403,6 +450,7 @@ const OrderEdit = () => {
                             name="delivery_house_number"
                             error={errors.delivery_house_number}
                             disabled={useDeliveryAddress}
+                            placeholder="Enter house number"
                         />
                         <Textinput
                             label="Postal Code"
@@ -410,6 +458,7 @@ const OrderEdit = () => {
                             name="delivery_postal_code"
                             error={errors.delivery_postal_code}
                             disabled={useDeliveryAddress}
+                            placeholder="Enter postal code"
                         />
                         <Textinput
                             label="City"
@@ -417,6 +466,7 @@ const OrderEdit = () => {
                             name="delivery_city"
                             error={errors.delivery_city}
                             disabled={useDeliveryAddress}
+                            placeholder="Enter city"
                         />
                         <Textinput
                             label="Country"
@@ -424,6 +474,7 @@ const OrderEdit = () => {
                             name="delivery_country"
                             error={errors.delivery_country}
                             disabled={useDeliveryAddress}
+                            placeholder="Enter country"
                         />
                     </div>
                 </Card>
