@@ -1,5 +1,4 @@
 import SkeletionTable from "@/components/skeleton/Table";
-import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
@@ -126,7 +125,7 @@ function Orders({ title = "Orders" }) {
                                     row?.cell?.value === "completed"
                                         ? "bg-success-500"
                                         : ""
-                                } 
+                                }
                                 ${
                                     row?.cell?.value === "active"
                                         ? "bg-info-500"
