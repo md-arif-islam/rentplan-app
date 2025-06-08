@@ -38,4 +38,14 @@ class Company extends Model
     {
         return $this->hasOne(CompanyProfile::class);
     }
+
+    public function customers()
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }

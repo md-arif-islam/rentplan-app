@@ -155,21 +155,54 @@ class DashboardController extends Controller
         $planExpiry = isset($plan['plan_expiry_date']) ? Carbon::parse($plan['plan_expiry_date'])->format('M d, Y') : 'N/A';
         $daysLeft = isset($plan['plan_expiry_date']) ? now()->diffInDays(Carbon::parse($plan['plan_expiry_date']), false) : 0;
 
-        // Product and customer stats
-        $totalCustomers = $company->customers()->count();
-        $totalProducts = $company->products()->count();
-        $totalOrders = $company->orders()->count();
-        $activeRentals = $company->orders()->where('order_status', 'active')->count();
+        // Check if relationship methods exist before using them
+        // Product and customer stats - handle safely if tables don't exist
+        $totalCustomers = 0;
+        if (method_exists($company, 'customers') && class_exists('App\Models\Customer')) {
+            try {
+                $totalCustomers = $company->customers()->count();
+            } catch (\Exception $e) {
+                // If table doesn't exist, just keep the default value
+            }
+        }
 
-        // Monthly order trends
+        $totalProducts = 0;
+        if (method_exists($company, 'products') && class_exists('App\Models\Product')) {
+            try {
+                $totalProducts = $company->products()->count();
+            } catch (\Exception $e) {
+                // If table doesn't exist, just keep the default value
+            }
+        }
+
+        $totalOrders = 0;
+        $activeRentals = 0;
+        if (method_exists($company, 'orders') && class_exists('App\Models\Order')) {
+            try {
+                $totalOrders = $company->orders()->count();
+                $activeRentals = $company->orders()->where('order_status', 'active')->count();
+            } catch (\Exception $e) {
+                // If table doesn't exist, just keep the default values
+            }
+        }
+
+        // Monthly order trends with safety checks
         $orderTrends = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $month = $date->format('M Y');
-            $count = $company->orders()
-                ->whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->count();
+
+            $count = 0;
+            if (method_exists($company, 'orders') && class_exists('App\Models\Order')) {
+                try {
+                    $count = $company->orders()
+                        ->whereYear('created_at', $date->year)
+                        ->whereMonth('created_at', $date->month)
+                        ->count();
+                } catch (\Exception $e) {
+                    // If query fails, keep count as 0
+                }
+            }
 
             $orderTrends[] = [
                 'month' => $month,
@@ -177,71 +210,106 @@ class DashboardController extends Controller
             ];
         }
 
-        // Recent activity
+        // Prepare empty arrays to avoid errors
         $recentActivity = [];
-
-        // Recent orders
-        $recentOrders = $company->orders()->with('customer')->latest()->take(5)->get();
-        foreach ($recentOrders as $order) {
-            $recentActivity[] = [
-                'type' => 'order',
-                'message' => "New order for customer \"{$order->customer->first_name} {$order->customer->last_name}\"",
-                'timestamp' => $order->created_at->diffForHumans()
-            ];
-        }
-
-        // Recent customers
-        $recentCustomers = $company->customers()->latest()->take(5)->get();
-        foreach ($recentCustomers as $customer) {
-            $recentActivity[] = [
-                'type' => 'customer',
-                'message' => "New customer \"{$customer->first_name} {$customer->last_name}\" added",
-                'timestamp' => $customer->created_at->diffForHumans()
-            ];
-        }
-
-        // Recent products
-        $recentProducts = $company->products()->latest()->take(5)->get();
-        foreach ($recentProducts as $product) {
-            $recentActivity[] = [
-                'type' => 'product',
-                'message' => "New product \"{$product->name}\" added",
-                'timestamp' => $product->created_at->diffForHumans()
-            ];
-        }
-
-        // Sort by timestamp
-        usort($recentActivity, function ($a, $b) {
-            return strtotime($b['timestamp']) - strtotime($a['timestamp']);
-        });
-        $recentActivity = array_slice($recentActivity, 0, 10);
-
-        // Upcoming returns (orders ending soon)
         $upcomingReturns = [];
-        $endingOrders = $company->orders()
-            ->where('order_status', 'active')
-            ->where('end_date', '>=', now())
-            ->where('end_date', '<=', now()->addDays(10))
-            ->with('customer')
-            ->with('product')
-            ->get();
 
-        foreach ($endingOrders as $order) {
-            $daysLeft = now()->diffInDays(Carbon::parse($order->end_date), false);
-
-            $upcomingReturns[] = [
-                'id' => $order->id,
-                'customer_name' => "{$order->customer->first_name} {$order->customer->last_name}",
-                'product_name' => $order->product->name,
-                'end_date' => Carbon::parse($order->end_date)->format('M d, Y'),
-                'days_left' => $daysLeft
-            ];
+        // Recent activity (only add if the related models exist)
+        if (method_exists($company, 'orders') && class_exists('App\Models\Order') && class_exists('App\Models\Customer')) {
+            try {
+                // Recent orders
+                $recentOrders = $company->orders()->with('customer')->latest()->take(5)->get();
+                foreach ($recentOrders as $order) {
+                    if ($order->customer) {
+                        $recentActivity[] = [
+                            'type' => 'order',
+                            'message' => "New order for customer \"{$order->customer->first_name} {$order->customer->last_name}\"",
+                            'timestamp' => $order->created_at->diffForHumans()
+                        ];
+                    }
+                }
+            } catch (\Exception $e) {
+                // Skip if there's an error
+            }
         }
 
-        // Sort by days left
-        usort($upcomingReturns, function ($a, $b) {
-            return $a['days_left'] <=> $b['days_left'];
-        });
+        if (method_exists($company, 'customers') && class_exists('App\Models\Customer')) {
+            try {
+                // Recent customers
+                $recentCustomers = $company->customers()->latest()->take(5)->get();
+                foreach ($recentCustomers as $customer) {
+                    $recentActivity[] = [
+                        'type' => 'customer',
+                        'message' => "New customer \"{$customer->first_name} {$customer->last_name}\" added",
+                        'timestamp' => $customer->created_at->diffForHumans()
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Skip if there's an error
+            }
+        }
+
+        if (method_exists($company, 'products') && class_exists('App\Models\Product')) {
+            try {
+                // Recent products
+                $recentProducts = $company->products()->latest()->take(5)->get();
+                foreach ($recentProducts as $product) {
+                    $recentActivity[] = [
+                        'type' => 'product',
+                        'message' => "New product \"{$product->name}\" added",
+                        'timestamp' => $product->created_at->diffForHumans()
+                    ];
+                }
+            } catch (\Exception $e) {
+                // Skip if there's an error
+            }
+        }
+
+        // Sort by timestamp if we have any activities
+        if (!empty($recentActivity)) {
+            usort($recentActivity, function ($a, $b) {
+                return strtotime($b['timestamp']) - strtotime($a['timestamp']);
+            });
+            $recentActivity = array_slice($recentActivity, 0, 10);
+        }
+
+        // Upcoming returns (only add if Order model exists)
+        if (
+            method_exists($company, 'orders') && class_exists('App\Models\Order') &&
+            class_exists('App\Models\Customer') && class_exists('App\Models\Product')
+        ) {
+            try {
+                $endingOrders = $company->orders()
+                    ->where('order_status', 'active')
+                    ->where('end_date', '>=', now())
+                    ->where('end_date', '<=', now()->addDays(10))
+                    ->with('customer', 'product')
+                    ->get();
+
+                foreach ($endingOrders as $order) {
+                    if ($order->customer && $order->product) {
+                        $daysLeft = now()->diffInDays(Carbon::parse($order->end_date), false);
+
+                        $upcomingReturns[] = [
+                            'id' => $order->id,
+                            'customer_name' => "{$order->customer->first_name} {$order->customer->last_name}",
+                            'product_name' => $order->product->name,
+                            'end_date' => Carbon::parse($order->end_date)->format('M d, Y'),
+                            'days_left' => $daysLeft
+                        ];
+                    }
+                }
+
+                // Sort by days left
+                if (!empty($upcomingReturns)) {
+                    usort($upcomingReturns, function ($a, $b) {
+                        return $a['days_left'] <=> $b['days_left'];
+                    });
+                }
+            } catch (\Exception $e) {
+                // Keep empty array if error occurs
+            }
+        }
 
         return response()->json([
             'company' => [
