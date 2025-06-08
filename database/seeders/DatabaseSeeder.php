@@ -24,6 +24,9 @@ class DatabaseSeeder extends Seeder
             // User profiles are created last as they depend on users
             UserProfileSeeder::class,
 
+            // Add order seeder to create additional orders if needed
+            // OrderSeeder::class, // Uncomment if you need more orders
+
             // Auth logs for user authentication history
             AuthLogSeeder::class,
         ]);

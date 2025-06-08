@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
         // Create super admin user
         $superAdmin = User::create([
             'email' => 'admin@rentplan.nl',
-            'password' => Hash::make('password'),
+            'password' => '12345678',
             'role_id' => $superAdminRole->id,
             'company_id' => $demoCompany->id, // Super admin is associated with the demo company for DB constraints
             'email_verified_at' => now(),

@@ -155,53 +155,41 @@ class DashboardController extends Controller
         $planExpiry = isset($plan['plan_expiry_date']) ? Carbon::parse($plan['plan_expiry_date'])->format('M d, Y') : 'N/A';
         $daysLeft = isset($plan['plan_expiry_date']) ? now()->diffInDays(Carbon::parse($plan['plan_expiry_date']), false) : 0;
 
-        // Check if relationship methods exist before using them
-        // Product and customer stats - handle safely if tables don't exist
+        // Fix order count issues - directly query the orders table with company_id
         $totalCustomers = 0;
-        if (method_exists($company, 'customers') && class_exists('App\Models\Customer')) {
-            try {
-                $totalCustomers = $company->customers()->count();
-            } catch (\Exception $e) {
-                // If table doesn't exist, just keep the default value
-            }
-        }
-
         $totalProducts = 0;
-        if (method_exists($company, 'products') && class_exists('App\Models\Product')) {
-            try {
-                $totalProducts = $company->products()->count();
-            } catch (\Exception $e) {
-                // If table doesn't exist, just keep the default value
-            }
-        }
-
         $totalOrders = 0;
         $activeRentals = 0;
-        if (method_exists($company, 'orders') && class_exists('App\Models\Order')) {
-            try {
-                $totalOrders = $company->orders()->count();
-                $activeRentals = $company->orders()->where('order_status', 'active')->count();
-            } catch (\Exception $e) {
-                // If table doesn't exist, just keep the default values
-            }
+
+        try {
+            // Use DB facade to query directly for more reliable results
+            $totalCustomers = \DB::table('customers')->where('company_id', $companyId)->count();
+            $totalProducts = \DB::table('products')->where('company_id', $companyId)->count();
+            $totalOrders = \DB::table('orders')->where('company_id', $companyId)->count();
+            $activeRentals = \DB::table('orders')
+                ->where('company_id', $companyId)
+                ->where('order_status', 'active')
+                ->count();
+        } catch (\Exception $e) {
+            // Log error but continue
+            \Log::error('Error counting dashboard items: ' . $e->getMessage());
         }
 
-        // Monthly order trends with safety checks
+        // Monthly order trends with direct DB query
         $orderTrends = [];
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $month = $date->format('M Y');
 
             $count = 0;
-            if (method_exists($company, 'orders') && class_exists('App\Models\Order')) {
-                try {
-                    $count = $company->orders()
-                        ->whereYear('created_at', $date->year)
-                        ->whereMonth('created_at', $date->month)
-                        ->count();
-                } catch (\Exception $e) {
-                    // If query fails, keep count as 0
-                }
+            try {
+                $count = \DB::table('orders')
+                    ->where('company_id', $companyId)
+                    ->whereYear('created_at', $date->year)
+                    ->whereMonth('created_at', $date->month)
+                    ->count();
+            } catch (\Exception $e) {
+                // Keep count as 0 if query fails
             }
 
             $orderTrends[] = [

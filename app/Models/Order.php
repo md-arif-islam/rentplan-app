@@ -18,6 +18,7 @@ class Order extends Model
     protected $fillable = [
         'customer_id',
         'product_id',
+        'company_id',
         'start_date',
         'end_date',
         'order_status',
@@ -58,5 +59,13 @@ class Order extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * Get the company associated with the order.
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
     }
 }

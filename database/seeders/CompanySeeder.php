@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\QueryException;
 
 class CompanySeeder extends Seeder
 {
@@ -54,7 +55,7 @@ class CompanySeeder extends Seeder
         ];
 
         // Add all companies including the demo company to the array for seeding customers and products
-        array_unshift($companies, $demoCompany);
+        $companies = Company::all();
 
         // For each company, create customers, products and orders
         foreach ($companies as $company) {
@@ -87,24 +88,84 @@ class CompanySeeder extends Seeder
 
             // Create orders: 5-10 active, 10-20 completed
             foreach ($customers as $customer) {
+                // Merge all products
+                $allProducts = $simpleProducts->concat($variableProducts);
+
+                // Skip if no products exist
+                if ($allProducts->isEmpty()) {
+                    continue;
+                }
+
                 // 50% chance for each customer to have active orders
                 if (rand(0, 1) === 1) {
-                    $product = $simpleProducts->random();
-                    Order::factory()
-                        ->active()
-                        ->forCustomerAndProduct($customer, $product)
-                        ->count(rand(1, 3))
-                        ->create();
+                    $product = $allProducts->random();
+                    for ($i = 0; $i < rand(1, 3); $i++) {
+                        try {
+                            Order::factory()
+                                ->active()
+                                ->forCustomerAndProduct($customer, $product)
+                                ->create(['company_id' => $company->id]);
+                        } catch (QueryException $e) {
+                            // Skip this order if it causes a duplicate key error
+                            continue;
+                        }
+                    }
                 }
 
                 // 75% chance for each customer to have completed orders
                 if (rand(0, 3) > 0) {
-                    $product = $simpleProducts->random();
-                    Order::factory()
-                        ->completed()
-                        ->forCustomerAndProduct($customer, $product)
-                        ->count(rand(1, 5))
-                        ->create();
+                    $product = $allProducts->random();
+                    for ($i = 0; $i < rand(1, 5); $i++) {
+                        try {
+                            Order::factory()
+                                ->completed()
+                                ->forCustomerAndProduct($customer, $product)
+                                ->create(['company_id' => $company->id]);
+                        } catch (QueryException $e) {
+                            // Skip this order if it causes a duplicate key error
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create some pending and cancelled orders for variety
+        foreach ($companies as $company) {
+            $customers = Customer::where('company_id', $company->id)->get();
+            $products = Product::where('company_id', $company->id)->get();
+
+            if ($customers->count() > 0 && $products->count() > 0) {
+                // Create 3-8 pending orders
+                for ($i = 0; $i < rand(3, 8); $i++) {
+                    try {
+                        Order::factory()
+                            ->state(['order_status' => 'pending'])
+                            ->forCustomerAndProduct(
+                                $customers->random(),
+                                $products->random()
+                            )
+                            ->create(['company_id' => $company->id]);
+                    } catch (QueryException $e) {
+                        // Skip this order if it causes a duplicate key error
+                        continue;
+                    }
+                }
+
+                // Create 1-5 cancelled orders
+                for ($i = 0; $i < rand(1, 5); $i++) {
+                    try {
+                        Order::factory()
+                            ->state(['order_status' => 'cancelled'])
+                            ->forCustomerAndProduct(
+                                $customers->random(),
+                                $products->random()
+                            )
+                            ->create(['company_id' => $company->id]);
+                    } catch (QueryException $e) {
+                        // Skip this order if it causes a duplicate key error
+                        continue;
+                    }
                 }
             }
         }

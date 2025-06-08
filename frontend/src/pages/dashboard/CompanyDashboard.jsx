@@ -105,14 +105,14 @@ const CompanyDashboard = () => {
                                         : "bg-success-500"
                                 }`}
                             >
-                                {company.daysLeft} days left
+                                {Math.floor(company.daysLeft)} days left
                             </span>
                         )}
                     </div>
                 </div>
                 {company.planStatus === "active" && (
-                    <div className="mt-4 text-sm text-slate-500">
-                        Plan expiry: {company.planExpiry}
+                    <div className="mt-4 flex justify-end text-sm text-slate-500">
+                        Expires on: {company.planExpiry}
                     </div>
                 )}
             </Card>
