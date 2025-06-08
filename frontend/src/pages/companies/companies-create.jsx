@@ -105,11 +105,7 @@ const CompanyCreate = () => {
                 plan_status: "active",
                 plan_features: ["basic_features"],
                 plan_start_date: new Date().toISOString().split("T")[0],
-                plan_expiry_date: new Date(
-                    Date.now() + 30 * 24 * 60 * 60 * 1000
-                )
-                    .toISOString()
-                    .split("T")[0],
+                plan_expiry_date: new Date().toISOString().split("T")[0], // Changed to today instead of +30 days
             },
         },
     });
