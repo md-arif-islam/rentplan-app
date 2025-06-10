@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
@@ -41,17 +42,21 @@ class AuthService
      */
     public function attemptLogin(string $email, string $password): array
     {
+        Log::channel('auth')->debug('Login attempt', ['email' => $email, 'ip' => request()->ip()]);
+
         $user = $this->userRepository->findByEmail($email);
 
         if (!$user || !Hash::check($password, $user->password)) {
             // Log failed login attempt
             $this->authLogger->logFailedLogin($email);
+            Log::channel('auth')->warning('Failed login attempt', ['email' => $email, 'ip' => request()->ip(), 'reason' => 'Invalid credentials']);
             throw new \Exception('Invalid credentials', 401);
         }
 
         // Check if account is active
         if ($user->status === 'suspended') {
             $this->authLogger->logFailedLogin($email);
+            Log::channel('auth')->warning('Failed login attempt', ['email' => $email, 'ip' => request()->ip(), 'reason' => 'Account suspended']);
             throw new \Exception('This account has been suspended. Please contact support.', 403);
         }
 
@@ -67,6 +72,7 @@ class AuthService
 
         // Log successful login
         $this->authLogger->logLogin($user->id, $user->email);
+        Log::channel('auth')->info('Successful login', ['user_id' => $user->id, 'email' => $user->email, 'ip' => request()->ip()]);
 
         return [
             'token' => $token,
@@ -83,6 +89,7 @@ class AuthService
      */
     public function logout(User $user): void
     {
+        Log::channel('auth')->info('User logout', ['user_id' => $user->id, 'email' => $user->email, 'ip' => request()->ip()]);
         $this->userRepository->deleteAllTokens($user);
 
         // Log logout event
@@ -97,9 +104,12 @@ class AuthService
      */
     public function sendPasswordResetLink(string $email): string
     {
+        Log::channel('auth')->debug('Password reset request', ['email' => $email, 'ip' => request()->ip()]);
+
         $user = $this->userRepository->findByEmail($email);
 
         if (!$user) {
+            Log::channel('auth')->warning('Password reset request for non-existent user', ['email' => $email, 'ip' => request()->ip()]);
             return Password::INVALID_USER;
         }
 
@@ -109,6 +119,12 @@ class AuthService
         // Allow only 3 password reset requests per 60 minutes
         if (RateLimiter::tooManyAttempts($key, 3)) {
             $this->authLogger->log('password-reset-throttled', null, $email, [
+                'seconds_until_retry' => RateLimiter::availableIn($key)
+            ]);
+
+            Log::channel('auth')->warning('Password reset throttled', [
+                'email' => $email,
+                'ip' => request()->ip(),
                 'seconds_until_retry' => RateLimiter::availableIn($key)
             ]);
 
@@ -122,11 +138,14 @@ class AuthService
             function ($user, $token) {
                 $url = env('FRONTEND_URL') . '/reset-password?token=' . $token . '&email=' . urlencode($user->email);
                 $user->notify(new CustomResetPasswordNotification($token, $url));
+                Log::channel('auth')->info('Password reset notification sent', ['email' => $user->email]);
             }
         );
 
         // Log password reset request
         $this->authLogger->logPasswordResetRequest($email);
+
+        Log::channel('auth')->info('Password reset link sent', ['email' => $email, 'status' => $status]);
 
         return $status;
     }
@@ -141,9 +160,12 @@ class AuthService
      */
     public function resetPassword(string $email, string $password): bool
     {
+        Log::channel('auth')->debug('Password reset attempt', ['email' => $email, 'ip' => request()->ip()]);
+
         $user = $this->userRepository->findByEmail($email);
 
         if (!$user) {
+            Log::channel('auth')->warning('Password reset attempt for non-existent user', ['email' => $email, 'ip' => request()->ip()]);
             throw new \Exception('User not found', 404);
         }
 
@@ -162,11 +184,17 @@ class AuthService
 
             // Log successful password reset
             $this->authLogger->logPasswordReset($user->id, $user->email);
+            Log::channel('auth')->info('Password reset successful', ['user_id' => $user->id, 'email' => $user->email, 'ip' => request()->ip()]);
 
             DB::commit();
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::channel('auth')->error('Password reset failed', [
+                'email' => $email,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             throw $e;
         }
     }

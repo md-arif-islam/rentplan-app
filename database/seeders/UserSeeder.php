@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
             'email' => 'admin@rentplan.nl',
             'password' => '12345678',
             'role_id' => $superAdminRole->id,
-            'company_id' => $demoCompany->id, // Super admin is associated with the demo company for DB constraints
+            'company_id' => $demoCompany->id,
             'email_verified_at' => now(),
             'status' => 'active',
             'force_password_change' => false,
