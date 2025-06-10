@@ -1,0 +1,1 @@
+import{a as e,j as t}from"./index.075fb68b.js";function s(){return e("div",{className:"left-column relative z-[1] flex items-center justify-center h-full w-full",children:t("h1",{className:"text-6xl font-bold italic flex items-center justify-center h-full",children:["Rentplan",e("span",{className:"text-[#FF4847]",children:"."})]})})}export{s as L};
