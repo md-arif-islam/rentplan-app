@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
 
             // Auth logs for user authentication history
             AuthLogSeeder::class,
+
+            // Add settings seeder
+            SettingSeeder::class,
         ]);
     }
 }
