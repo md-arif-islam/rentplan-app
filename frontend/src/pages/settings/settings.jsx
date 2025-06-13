@@ -1,23 +1,72 @@
-import React, { useState } from "react";
 import SkeletionTable from "@/components/skeleton/Table";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Icon from "@/components/ui/Icon";
 import Modal from "@/components/ui/Modal";
-import Tooltip from "@/components/ui/Tooltip";
+import Select from "@/components/ui/Select";
 import Textinput from "@/components/ui/Textinput";
+import Tooltip from "@/components/ui/Tooltip";
 import {
+    useCreateSettingMutation,
     useDeleteSettingMutation,
     useGetSettingsQuery,
-    useCreateSettingMutation,
 } from "@/store/api/settings/settingsApiSlice";
 import { setSetting } from "@/store/api/settings/settingsSlice";
+import { yupResolver } from "@hookform/resolvers/yup";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { useForm } from "react-hook-form";
+
+// Static data for select options
+const settingTypes = [
+    { value: "general", label: "General (Text Input)" },
+    { value: "starting_week_day", label: "Starting Week Day" },
+    { value: "time_format", label: "Time Format" },
+    { value: "date_format", label: "Date Format" },
+    { value: "timezone", label: "Timezone" },
+];
+
+const weekDays = [
+    { value: "monday", label: "Monday" },
+    { value: "tuesday", label: "Tuesday" },
+    { value: "wednesday", label: "Wednesday" },
+    { value: "thursday", label: "Thursday" },
+    { value: "friday", label: "Friday" },
+    { value: "saturday", label: "Saturday" },
+    { value: "sunday", label: "Sunday" },
+];
+
+const timeFormats = [
+    { value: "12h", label: "12-hour (1:30 PM)" },
+    { value: "24h", label: "24-hour (13:30)" },
+];
+
+const dateFormats = [
+    { value: "Y-m-d", label: "YYYY-MM-DD (e.g., 2023-12-31)" },
+    { value: "m/d/Y", label: "MM/DD/YYYY (e.g., 12/31/2023)" },
+    { value: "d/m/Y", label: "DD/MM/YYYY (e.g., 31/12/2023)" },
+    { value: "d-m-Y", label: "DD-MM-YYYY (e.g., 31-12-2023)" },
+    { value: "d.m.Y", label: "DD.MM.YYYY (e.g., 31.12.2023)" },
+    { value: "F j, Y", label: "Month D, YYYY (e.g., December 31, 2023)" },
+    { value: "j F, Y", label: "D Month, YYYY (e.g., 31 December, 2023)" },
+];
+
+const timezones = [
+    { value: "UTC", label: "UTC - Coordinated Universal Time" },
+    {
+        value: "America/New_York",
+        label: "EST - Eastern Standard Time (New York)",
+    },
+    { value: "Europe/London", label: "GMT - Greenwich Mean Time (London)" },
+    { value: "Asia/Tokyo", label: "JST - Japan Standard Time (Tokyo)" },
+    {
+        value: "Australia/Sydney",
+        label: "AEST - Australian Eastern Standard Time (Sydney)",
+    },
+];
 
 // Schema for the add setting form
 const schema = yup.object().shape({
@@ -30,12 +79,14 @@ const schema = yup.object().shape({
         )
         .max(255, "Key cannot exceed 255 characters"),
     value: yup.string().nullable(),
+    settingType: yup.string().required("Setting type is required"),
 });
 
 const Settings = ({ title = "System Settings" }) => {
     const [searchValue, setSearchValue] = useState("");
     const [deleteModal, setDeleteModal] = useState(false);
     const [createModal, setCreateModal] = useState(false);
+    const [selectedSettingType, setSelectedSettingType] = useState("general");
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
@@ -85,21 +136,124 @@ const Settings = ({ title = "System Settings" }) => {
 
     const handleCloseCreateModal = () => {
         setCreateModal(false);
+        setSelectedSettingType("general");
         reset();
     };
 
     const {
         register,
         handleSubmit,
+        setValue,
+        watch,
         reset,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
+        defaultValues: {
+            key: "",
+            value: "",
+            settingType: "general",
+        },
     });
+
+    // Watch the setting type
+    const watchSettingType = watch("settingType");
+
+    // When setting type changes, update the key and reset value
+    React.useEffect(() => {
+        if (watchSettingType !== selectedSettingType) {
+            setSelectedSettingType(watchSettingType);
+
+            // If it's a predefined setting type, set the key to match
+            if (watchSettingType !== "general") {
+                setValue("key", watchSettingType);
+            } else {
+                setValue("key", "");
+            }
+
+            // Reset value based on setting type
+            if (watchSettingType === "starting_week_day") {
+                setValue("value", "monday");
+            } else if (watchSettingType === "time_format") {
+                setValue("value", "24h");
+            } else if (watchSettingType === "date_format") {
+                setValue("value", "Y-m-d");
+            } else if (watchSettingType === "timezone") {
+                setValue("value", "UTC");
+            } else {
+                setValue("value", "");
+            }
+        }
+    }, [watchSettingType, setValue, selectedSettingType]);
+
+    // Render value input based on setting type
+    const renderValueInput = () => {
+        const currentValue = watch("value");
+
+        switch (selectedSettingType) {
+            case "starting_week_day":
+                return (
+                    <Select
+                        label="Starting Week Day Value"
+                        options={weekDays}
+                        value={currentValue}
+                        onChange={(e) => setValue("value", e.target.value)}
+                        placeholder="Select a starting week day"
+                        error={errors.value}
+                    />
+                );
+            case "time_format":
+                return (
+                    <Select
+                        label="Time Format Value"
+                        options={timeFormats}
+                        value={currentValue}
+                        onChange={(e) => setValue("value", e.target.value)}
+                        placeholder="Select a time format"
+                        error={errors.value}
+                    />
+                );
+            case "date_format":
+                return (
+                    <Select
+                        label="Date Format Value"
+                        options={dateFormats}
+                        value={currentValue}
+                        onChange={(e) => setValue("value", e.target.value)}
+                        placeholder="Select a date format"
+                        error={errors.value}
+                    />
+                );
+            case "timezone":
+                return (
+                    <Select
+                        label="Timezone Value"
+                        options={timezones}
+                        value={currentValue}
+                        onChange={(e) => setValue("value", e.target.value)}
+                        placeholder="Select a timezone"
+                        error={errors.value}
+                    />
+                );
+            default:
+                return (
+                    <Textinput
+                        label="Value"
+                        name="value"
+                        type="text"
+                        placeholder="Enter setting value"
+                        register={register}
+                        error={errors.value}
+                    />
+                );
+        }
+    };
 
     const onSubmit = async (data) => {
         try {
-            await createSetting(data).unwrap();
+            // Extract just the key and value
+            const { key, value } = data;
+            await createSetting({ key, value }).unwrap();
             toast.success("Setting created successfully");
             handleCloseCreateModal();
         } catch (error) {
@@ -192,6 +346,17 @@ const Settings = ({ title = "System Settings" }) => {
                 }
             >
                 <form className="space-y-4">
+                    <Select
+                        label="Setting Type"
+                        options={settingTypes}
+                        value={watch("settingType")}
+                        onChange={(e) =>
+                            setValue("settingType", e.target.value)
+                        }
+                        placeholder="Select setting type"
+                        error={errors.settingType}
+                    />
+
                     <Textinput
                         label="Key"
                         name="key"
@@ -199,15 +364,10 @@ const Settings = ({ title = "System Settings" }) => {
                         placeholder="Enter setting key"
                         register={register}
                         error={errors.key}
+                        disabled={selectedSettingType !== "general"}
                     />
-                    <Textinput
-                        label="Value"
-                        name="value"
-                        type="text"
-                        placeholder="Enter setting value"
-                        register={register}
-                        error={errors.value}
-                    />
+
+                    {renderValueInput()}
                 </form>
             </Modal>
 
