@@ -1,5 +1,5 @@
 RewriteEngine on
-RewriteCond %{HTTP_HOST} ^kolster-app.onlinewithyou.nl/$ [NC,OR]
-RewriteCond %{HTTP_HOST} ^kolster-app.onlinewithyou.nl$
+RewriteCond %{HTTP_HOST} ^app.rentplan.nl/$ [NC,OR]
+RewriteCond %{HTTP_HOST} ^app.rentplan.nl$
 RewriteCond %{REQUEST_URI} !public/
 RewriteRule (.*) /public/$1 [L]
