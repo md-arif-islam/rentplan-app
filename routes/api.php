@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Middleware\CompanyAdminMiddleware;
 use App\Http\Middleware\SuperAdminMiddleware;
@@ -40,6 +41,14 @@ Route::prefix('admin')->middleware(['auth:sanctum', SuperAdminMiddleware::class,
     Route::put('/companies/{company}', [CompanyController::class, 'update']);
     Route::delete('/companies/{company}', [CompanyController::class, 'destroy']);
 
+
+    // Settings management
+    Route::get('/settings', [SettingController::class, 'index']);
+    Route::get('/settings/map', [SettingController::class, 'getMap']);
+    Route::post('/settings', [SettingController::class, 'store']);
+    Route::get('/settings/{key}', [SettingController::class, 'show']);
+    Route::put('/settings/{key}', [SettingController::class, 'update']);
+    Route::delete('/settings/{key}', [SettingController::class, 'destroy']);
 
     // Add more admin-specific routes here
 });
@@ -78,6 +87,10 @@ Route::prefix('company')->middleware(['auth:sanctum', CompanyAdminMiddleware::cl
     Route::get('/orders/{id}', [OrderController::class, 'show']);
     Route::put('/orders/{id}', [OrderController::class, 'update']);
     Route::delete('/orders/{id}', [OrderController::class, 'destroy']);
+
+    // Settings access (read-only)
+    Route::get('/settings', [SettingController::class, 'getMap']);
+    Route::get('/settings/{key}', [SettingController::class, 'show']);
 
     // Add more company-specific routes here
 });

@@ -66,7 +66,7 @@ class SettingRepository
 
     /**
      * Update or Create a setting
-     * 
+     *
      * @param string $key
      * @param mixed $value
      * @return Setting

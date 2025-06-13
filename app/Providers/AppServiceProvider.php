@@ -6,6 +6,7 @@ use App\Repositories\CompanyRepository;
 use App\Repositories\CustomerRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ProductRepository;
+use App\Repositories\SettingRepository;
 use App\Repositories\UserProfileRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthLoggerService;
@@ -15,6 +16,7 @@ use App\Services\CustomerService;
 use App\Services\DashboardService;
 use App\Services\OrderService;
 use App\Services\ProductService;
+use App\Services\SettingService;
 use App\Services\UserProfileService;
 use App\Services\UserService;
 use Illuminate\Support\ServiceProvider;
@@ -49,6 +51,10 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->bind(UserProfileRepository::class, function ($app) {
             return new UserProfileRepository();
+        });
+
+        $this->app->bind(SettingRepository::class, function ($app) {
+            return new SettingRepository();
         });
 
         // Register services
@@ -102,6 +108,12 @@ class AppServiceProvider extends ServiceProvider
                 $app->make(OrderRepository::class),
                 $app->make(CustomerRepository::class),
                 $app->make(ProductRepository::class)
+            );
+        });
+
+        $this->app->bind(SettingService::class, function ($app) {
+            return new SettingService(
+                $app->make(SettingRepository::class)
             );
         });
     }

@@ -15,6 +15,13 @@ export const menuItems = [
         icon: "heroicons-outline:office-building",
         link: "companies",
     },
+
+    // seetings
+    {
+        title: "Settings",
+        icon: "heroicons-outline:cog",
+        link: "settings",
+    },
 ];
 
 export const colors = {

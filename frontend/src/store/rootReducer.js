@@ -7,6 +7,7 @@ import holdersTaxes from "./api/holdersTaxes/holdersTaxesSlice";
 import orders from "./api/orders/ordersSlice";
 import products from "./api/products/productsSlice";
 import profile from "./api/profile/profileSlice";
+import settings from "./api/settings/settingsSlice";
 import users from "./api/users/usersSlice";
 import layout from "./layout";
 
@@ -22,6 +23,7 @@ const rootReducer = {
     users,
     products,
     orders,
+    settings,
 };
 
 export default rootReducer;

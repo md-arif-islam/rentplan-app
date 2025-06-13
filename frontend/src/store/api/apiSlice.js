@@ -117,7 +117,15 @@ const customBaseQuery = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
     reducerPath: "api",
     baseQuery: customBaseQuery,
-    tagTypes: ["User", "Profile", "Auth", "BreederPlants", "PlantBreeders"],
+    tagTypes: [
+        "User",
+        "Profile",
+        "Auth",
+        "BreederPlants",
+        "PlantBreeders",
+        "Settings",
+        "Products",
+    ],
     endpoints: () => ({}),
     // Add global configuration
     keepUnusedDataFor: 300, // 5 minutes

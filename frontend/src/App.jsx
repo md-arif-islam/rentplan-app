@@ -42,6 +42,11 @@ const OrdersShow = lazy(() => import("./pages/orders/orders-show"));
 const OrdersCreate = lazy(() => import("./pages/orders/orders-create"));
 const OrdersEdit = lazy(() => import("./pages/orders/orders-edit"));
 
+// Settings pages
+const Settings = lazy(() => import("./pages/settings/settings"));
+const SettingsEdit = lazy(() => import("./pages/settings/settings-edit"));
+const CompanySettings = lazy(() => import("./pages/settings/company-settings"));
+
 const Error = lazy(() => import("./pages/404"));
 
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -152,6 +157,16 @@ function App() {
                         element={wrapWithErrorBoundary(CompaniesEdit)}
                     />
 
+                    {/* Settings routes */}
+                    <Route
+                        path="settings"
+                        element={wrapWithErrorBoundary(Settings)}
+                    />
+                    <Route
+                        path="settings/:key/edit"
+                        element={wrapWithErrorBoundary(SettingsEdit)}
+                    />
+
                     <Route path="*" element={<Navigate to="/404" />} />
                 </Route>
 
@@ -253,6 +268,12 @@ function App() {
                     <Route
                         path="orders/:id/edit"
                         element={wrapWithErrorBoundary(OrdersEdit)}
+                    />
+
+                    {/* Settings route (read-only) */}
+                    <Route
+                        path="settings"
+                        element={wrapWithErrorBoundary(CompanySettings)}
                     />
 
                     <Route path="*" element={<Navigate to="/404" />} />
